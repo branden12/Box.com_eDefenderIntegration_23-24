@@ -38,3 +38,20 @@ As public defenders, they are ethically bound to find and review the best possib
  - Implement proper security techniques and best practices using AWS services
  - Restructure modules to prepare for future multi-language support and translation.
  - Update/migrate environment and dependency versions of modules for security.
+
+## Team
+
+| Role | Name | Email | 
+| ------------- | ------------- | ------------- | 
+| Faculty Advisor | Jungsom Lim | jim34@calstatela.edu | 
+| Project Lead | Branden Zamora | bzamor19@calstatela.edu |
+| Document Lead | Jacqueline Molina | jmolin84@calstatela.edu | 
+| Customer Liaison/Requirments Lead | Donovan Hatfield | dhatfie2@calstatela.edu |
+| Architecture/Design Lead | Jose Alvarado | jalva297@calstatel.edu | 
+| UI Lead | Brian Mcnaughton | emcnaug@calstatela.edu |
+| Backend Lead | Dat "Justin" Nguyen | dnguye163@calstatela.edu |
+| Database Schema Lead | Coby Alvarez | calvar108@calstatela.edu |
+| QA/QC Lead | Florian Haule | fhaule@calstatela.edu |
+| Demo Lead | Luis Perez Campos | lperez105@calstatela.edu |
+| Presentation Lead	 | Leo Gallardo | lgallar9@calstatela.edu |
+
