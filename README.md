@@ -26,3 +26,5 @@ In addition to the equipment, maintenance and licensing costs related to storing
 
 
 As public defenders, they are ethically bound to find and review the best possible evidence to secure their client’s defense, and yet public defenders lack the financial and staffing resources to adequately do so.  Public defenders find critical information in body-worn camera footage, jail calls, and interrogation videos.  Client, witness, and officer statements in body-worn camera footage help public defenders identify details missing from police reports.  We know that gold exists in all sorts of audiovisual evidence, and our goal is to level the playing field for public defense — especially in crucial sources of information like police body-worn camera footage, jail calls, and interrogation video.
+
+![Alt text](diagram.png?raw=true "Title")
