@@ -28,3 +28,13 @@ In addition to the equipment, maintenance and licensing costs related to storing
 
 
 As public defenders, they are ethically bound to find and review the best possible evidence to secure their client’s defense, and yet public defenders lack the financial and staffing resources to adequately do so.  Public defenders find critical information in body-worn camera footage, jail calls, and interrogation videos.  Client, witness, and officer statements in body-worn camera footage help public defenders identify details missing from police reports.  We know that gold exists in all sorts of audiovisual evidence, and our goal is to level the playing field for public defense — especially in crucial sources of information like police body-worn camera footage, jail calls, and interrogation video.
+
+## Scope
+
+ - Upon upload to Box.com, discovery media is transcribed/translated/facial recognition/keyword search.  Integrate with AWS/Microsoft Video Indexer (similar to LA County project).
+ - Transcribed discovery is added to Box Skills template and saved to case file.
+ - Transcript word document is properly formatted and marked for low-confidence using the Video Indexer insights before being uploaded to case file.
+ - Develop accurate custom English speech and language models in Video Indexer.
+ - Implement proper security techniques and best practices using AWS services
+ - Restructure modules to prepare for future multi-language support and translation.
+ - Update/migrate environment and dependency versions of modules for security.
