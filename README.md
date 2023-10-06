@@ -55,3 +55,10 @@ As public defenders, they are ethically bound to find and review the best possib
 | Demo Lead | Luis Perez Campos | lperez105@calstatela.edu |
 | Presentation Lead	 | Leo Gallardo | lgallar9@calstatela.edu |
 
+### Meeting Schedule 
+
+| Category | Date | Time | 
+| ------------- | ------------- | ------------- | 
+| Bi-weekly Liaison Meeting time | Friday | 9:00 am - 10:00 am | 
+| Weekly Advisor Group Meeting | Friday | 11:00 am - 12:00 pm |
+| Team Meeting | Friday | 3:00 pm - 5:00 pm | 
