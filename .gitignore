@@ -7,3 +7,6 @@ jspm_packages
 
 # Auth files
 /config.json
+
+# package-lock
+/package-lock.json
