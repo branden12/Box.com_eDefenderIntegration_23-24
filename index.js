@@ -1,5 +1,5 @@
 /**
- * Samuel Moon >> AJ Voisan
+ * Samuel Moon >> AJ Voisan >> Branden Zamora
  * 
  * Notes (update 12/23/19):
  * 1. Environment variables are set on the lambda configuration page.
@@ -130,7 +130,6 @@ module.exports.handler = async (event) => {
 
         } catch(e) {
             console.error(e);
-            sendErrorEmail(e);
         }
         return;
     }
@@ -179,7 +178,6 @@ module.exports.handler = async (event) => {
             return {statusCode: 200};
         } catch(e) {
             console.error(e);
-            sendErrorEmail(e);
         }
     }
     else {
