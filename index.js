@@ -14,12 +14,14 @@
 'use strict';
 const { FilesReader, SkillsWriter, SkillsErrorEnum } = require("./skills-kit-library/skills-kit-2.0.js");
 const {VideoIndexer, ConvertTime} = require("./video-indexer");
-const AWS = require("aws-sdk");
+const { Upload } = require("@aws-sdk/lib-storage"),
+      { S3, S3Client, GetObjectCommand } = require("@aws-sdk/client-s3");
 const { request } = require("express");
-const sendErrorEmail = require("./email").sendErrorEmail;
 const TranscribeDoc = require("./transcribe-doc").TranscribeDoc;
 
-var s3 = new AWS.S3();
+var s3 = new S3();
+const client = new S3Client({});
+
 // const cloneDeep = require("lodash/cloneDeep"); // For deep cloning json objects
 
 module.exports.handler = async (event) => {
@@ -43,13 +45,20 @@ module.exports.handler = async (event) => {
 
             console.log('Request ID: ' + requestId);
 
-            let bucketData = await s3.getObject(params).promise();
-            console.log(bucketData);
+            // let bucketData = await s3.getObject(params);
+            // console.log(bucketData);
+
+            const command = new GetObjectCommand(params);
+            const bucketData = await client.send(command);
+            const response = await bucketData.Body.transformToString();
+
+            console.log(response);
 
             // "Body" is capital "B", not lowercase like "body".
-            let fileContext = JSON.parse(bucketData.Body.toString());
+            let fileContext = JSON.parse(response);
+
             console.log(fileContext);
-            console.log(fileContext.fileWriteToken);
+            console.log('FileWriteToken: ' + fileContext.fileWriteToken);
 
             // retrieve folderId from fileContext
             let folderId = fileContext.folderId;
@@ -163,7 +172,10 @@ module.exports.handler = async (event) => {
 
             console.log('Request ID: ' + fileContext.requestId);
 
-            let s3Response = await s3.upload(params).promise()
+            let s3Response = await new Upload({
+                client: s3,
+                params
+            }).done()
             console.log(s3Response);
     
             let skillsWriter = new SkillsWriter(fileContext);
