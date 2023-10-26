@@ -15,11 +15,18 @@
 const { FilesReader, SkillsWriter, SkillsErrorEnum } = require("./skills-kit-library/skills-kit-2.0.js");
 const {VideoIndexer, ConvertTime} = require("./video-indexer");
 const { Upload } = require("@aws-sdk/lib-storage"),
-      { S3, S3Client, GetObjectCommand } = require("@aws-sdk/client-s3");
+      { S3, S3Client, GetObjectCommand, DeleteObjectCommand } = require("@aws-sdk/client-s3");
 const { request } = require("express");
 const TranscribeDoc = require("./transcribe-doc").TranscribeDoc;
 
 var s3 = new S3();
+// const client = new S3Client({
+//     region: 'us-east-1',
+//     credentials: {
+//         accessKeyId: 'AKIA276VNTCRLEIISCLI',
+//         secretAccessKey: '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'
+//     }
+// });
 const client = new S3Client({});
 // const cloneDeep = require("lodash/cloneDeep"); // For deep cloning json objects
 
@@ -103,10 +110,6 @@ module.exports.handler = async (event) => {
             console.log(transcripts);
             cards.push(skillsWriter.createTranscriptsCard(transcripts, fileDuration));
 
-        
-
-
-
 
             // Faces (sometimes there are no faces detected)
             if (indexerData.videos[0].insights.faces) {
@@ -135,9 +138,13 @@ module.exports.handler = async (event) => {
             console.log("After saveDataCards");
             // This was where transcribe-doc call was originally placed
 
+            // delete the newly created S3 bucket object
+            const deleteS3Object = new DeleteObjectCommand(params);
+            const deleteS3ObjectResponse = await client.send(deleteS3Object);
+            console.log(deleteS3ObjectResponse);
+
         } catch(e) {
             console.error(e);
-            sendErrorEmail(e);
         }
         return;
     }
@@ -189,7 +196,6 @@ module.exports.handler = async (event) => {
             return {statusCode: 200};
         } catch(e) {
             console.error(e);
-            sendErrorEmail(e);
         }
     }
     else {
