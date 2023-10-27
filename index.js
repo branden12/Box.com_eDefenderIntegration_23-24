@@ -20,13 +20,6 @@ const { request } = require("express");
 const TranscribeDoc = require("./transcribe-doc").TranscribeDoc;
 
 var s3 = new S3();
-// const client = new S3Client({
-//     region: 'us-east-1',
-//     credentials: {
-//         accessKeyId: 'AKIA276VNTCRLEIISCLI',
-//         secretAccessKey: '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'
-//     }
-// });
 const client = new S3Client({});
 // const cloneDeep = require("lodash/cloneDeep"); // For deep cloning json objects
 
