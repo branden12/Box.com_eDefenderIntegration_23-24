@@ -2,7 +2,7 @@
 service: box-video-skill-justin
 provider:
   name: aws
-  runtime: nodejs14.x
+  runtime: nodejs18.x
   environment:
       APIGATEWAY: 'ENTER_GENERATED_API_GATEWAY'
       S3_BUCKET: 'ENTER_GENERATED_S3_BUCKET_NAME'
