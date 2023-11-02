@@ -12,6 +12,7 @@
  */
 
 'use strict';
+const BoxSDK = require("box-node-sdk");
 const { FilesReader, SkillsWriter, SkillsErrorEnum } = require("./skills-kit-library/skills-kit-2.0.js");
 const {VideoIndexer, ConvertTime} = require("./video-indexer");
 const { Upload } = require("@aws-sdk/lib-storage"),
@@ -146,50 +147,62 @@ module.exports.handler = async (event) => {
     console.log(parsedBody);
 
     if (event && parsedBody.hasOwnProperty("type") && parsedBody.type === "skill_invocation") {
-        try {
             console.debug(`Box event received: ${JSON.stringify(event)}`);
-            let videoIndexer = new VideoIndexer(process.env.APIGATEWAY); // Initialized with callback endpoint
-            await videoIndexer.getToken(true);
+
+            // check if request is valid
+            let isValid = BoxSDK.validateWebhookMessage(event.body, event.headers, process.env.BOX_PRIMARY_KEY, process.env.BOX_SECONDARY_KEY);
             
-            // instantiate your two skill development helper tools
-            let filesReader = new FilesReader(event.body);
-            let fileContext = filesReader.getFileContext();
-
-            // attempt to get folderID from source where file was uploaded
-            let sourceFolderID = parsedBody.source.parent.id;
-            console.log("sourceFolderID: ", sourceFolderID);
-
-            // create new sourceFolderID for fileContext
-            fileContext.folderId = sourceFolderID;
-    
-            // S3 write fileContext JSON to save tokens for later use.
-            let params = {
-                Bucket: process.env.S3_BUCKET,
-                Key: fileContext.requestId,
-                Body: JSON.stringify(fileContext)
-            }
-
-            console.log('Request ID: ' + fileContext.requestId);
-
-            let s3Response = await new Upload({
-                client: s3,
-                params
-            }).done()
-            console.log(s3Response);
-    
-            let skillsWriter = new SkillsWriter(fileContext);
-            
-            await skillsWriter.saveProcessingCard();
+            if (isValid) {
+                try {
+                    let videoIndexer = new VideoIndexer(process.env.APIGATEWAY); // Initialized with callback endpoint
+                    await videoIndexer.getToken(true);
+                    
+                    // instantiate your two skill development helper tools
+                    let filesReader = new FilesReader(event.body);
+                    let fileContext = filesReader.getFileContext();
         
-            console.debug("sending video to VI");
-            await videoIndexer.upload(fileContext.fileName, fileContext.requestId, fileContext.fileDownloadURL,JSON.parse(event.body).skill.name); // Will POST a success when it's done indexing.
-            console.debug("video sent to VI");
-    
-            console.debug("returning response to box");
-            return {statusCode: 200};
-        } catch(e) {
-            console.error(e);
-        }
+                    // attempt to get folderID from source where file was uploaded
+                    let sourceFolderID = parsedBody.source.parent.id;
+                    console.log("sourceFolderID: ", sourceFolderID);
+        
+                    // create new sourceFolderID for fileContext
+                    fileContext.folderId = sourceFolderID;
+            
+                    // S3 write fileContext JSON to save tokens for later use.
+                    let params = {
+                        Bucket: process.env.S3_BUCKET,
+                        Key: fileContext.requestId,
+                        Body: JSON.stringify(fileContext)
+                    }
+        
+                    console.log('Request ID: ' + fileContext.requestId);
+        
+                    let s3Response = await new Upload({
+                        client: s3,
+                        params
+                    }).done()
+                    console.log(s3Response);
+            
+                    let skillsWriter = new SkillsWriter(fileContext);
+                    
+                    await skillsWriter.saveProcessingCard();
+                
+                    console.debug("sending video to VI");
+                    await videoIndexer.upload(fileContext.fileName, fileContext.requestId, fileContext.fileDownloadURL,JSON.parse(event.body).skill.name); // Will POST a success when it's done indexing.
+                    console.debug("video sent to VI");
+            
+                    console.debug("returning response to box");
+                    return {statusCode: 200};
+
+                } catch(e) {
+                    console.error(e);
+                }
+
+            } else {
+                console.log('Security Keys Were Not Valid.');
+                response.status(200).send('Keys Invalid');
+            }
+            
     }
     else {
         console.debug("Unknown request");
