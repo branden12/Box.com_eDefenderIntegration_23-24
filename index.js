@@ -12,12 +12,20 @@
  */
 
 'use strict';
-const { FilesReader, SkillsWriter, SkillsErrorEnum } = require("./skills-kit-library/skills-kit-2.0.js");
-const {VideoIndexer, ConvertTime} = require("./video-indexer");
-const AWS = require("aws-sdk");
-const { request } = require("express");
-const sendErrorEmail = require("./email").sendErrorEmail;
-const TranscribeDoc = require("./transcribe-doc").TranscribeDoc;
+// const { FilesReader, SkillsWriter, SkillsErrorEnum } = require("./skills-kit-library/skills-kit-2.0.js");
+// const {VideoIndexer, ConvertTime} = require("./video-indexer");
+// const AWS = require("aws-sdk");
+// const { request } = require("express");
+// const sendErrorEmail = require("./email").sendErrorEmail;
+// const TranscribeDoc = require("./transcribe-doc").TranscribeDoc;
+
+import { FilesReader, SkillsWriter, SkillsErrorEnum } from "./skills-kit-library/skills-kit-2.0.js";
+import {VideoIndexer, ConvertTime} from "./video-indexer.js";
+import AWS from "aws-sdk";
+import { request } from "express";
+// import sendErrorEmail from "./email".sendErrorEmail;
+import TranscribeDoc from "./transcribe-doc.js";
+
 
 var s3 = new AWS.S3();
 // const cloneDeep = require("lodash/cloneDeep"); // For deep cloning json objects
@@ -130,7 +138,7 @@ module.exports.handler = async (event) => {
 
         } catch(e) {
             console.error(e);
-            sendErrorEmail(e);
+            // sendErrorEmail(e);
         }
         return;
     }
@@ -179,7 +187,7 @@ module.exports.handler = async (event) => {
             return {statusCode: 200};
         } catch(e) {
             console.error(e);
-            sendErrorEmail(e);
+            // sendErrorEmail(e);
         }
     }
     else {

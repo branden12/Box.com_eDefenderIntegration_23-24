@@ -1,0 +1,8 @@
+{
+    "_comment": "Old URL: https://6avjgxgnp9.execute-api.us-east-1.amazonaws.com/dev/",
+    "APIGATEWAY": "https://0xcon6gixd.execute-api.us-east-1.amazonaws.com/dev/",
+    "S3_BUCKET": "box-video-skill-promise-serverlessdeploymentbuck-18z18mtrh7co3",
+    "VI_ACCOUNT_ID": "fc042625-0e06-478d-aad6-cfa6b4aa9b47",
+    "VI_AUTH_KEY_1": "cef402ee8927481086bf5c5f7ca09805",
+    "VI_AUTH_KEY_2": "f63ead3dd2a44e34a06e0f1d902715a9"
+}

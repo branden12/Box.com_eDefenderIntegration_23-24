@@ -2,8 +2,10 @@
   "name": "samuel-moon-box",
   "version": "1.0.0",
   "main": "index.js",
+  "type": "module",
   "dependencies": {
-    "aws-sdk": "^2.595.0",
+    "@aws-sdk/client-secrets-manager": "^3.437.0",
+    "aws-sdk": "^2.1482.0",
     "box-node-sdk": "^2.8.1",
     "docx": "^7.8.2",
     "express": "^4.17.1",
