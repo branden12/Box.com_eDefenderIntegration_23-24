@@ -143,7 +143,7 @@ VideoIndexer.prototype.getToken = function (allowEdit) {
                 // Need to find out what's causing the encoding issue that inserts double quotes around the token
                 this.accessToken = data;
                 console.log(this.accessToken);
-                resolve("Success: Authorization Token");
+                resolve({statusCode: result.statusCode, Body: "Success: Authorization Token"});
             });
     
         })

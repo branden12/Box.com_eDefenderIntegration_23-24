@@ -16,7 +16,7 @@ const BoxSDK = require("box-node-sdk");
 const { FilesReader, SkillsWriter, SkillsErrorEnum } = require("./skills-kit-library/skills-kit-2.0.js");
 const {VideoIndexer, ConvertTime} = require("./video-indexer");
 const { Upload } = require("@aws-sdk/lib-storage"),
-      { S3, S3Client, GetObjectCommand, DeleteObjectCommand } = require("@aws-sdk/client-s3");
+      { S3, S3Client, GetObjectCommand, DeleteObjectCommand, PutObjectCommand } = require("@aws-sdk/client-s3");
 const { request } = require("express");
 const TranscribeDoc = require("./transcribe-doc").TranscribeDoc;
 
@@ -136,7 +136,7 @@ module.exports.handler = async (event) => {
             const deleteS3Object = new DeleteObjectCommand(params);
             const deleteS3ObjectResponse = await client.send(deleteS3Object);
             console.log(deleteS3ObjectResponse);
-            console.log('S3 Bucket Deletion Success.')
+            console.log('S3 Bucket Deletion Success.');
 
         } catch(e) {
             console.error(e);
@@ -159,7 +159,7 @@ module.exports.handler = async (event) => {
                 let videoIndexer = new VideoIndexer(process.env.APIGATEWAY); // Initialized with callback endpoint
                 let VItoken = await videoIndexer.getToken(true);
 
-                if (VItoken.statusCode != 200) {
+                if (VItoken.statusCode != 200) { // Handling VI initializing Errors
                     console.error('Failed to Create a Video Indexer Object');
                     return {statusCode: 400, body: "Check Error Log."};
                 }
@@ -175,7 +175,6 @@ module.exports.handler = async (event) => {
                 // create new sourceFolderID for fileContext
                 fileContext.folderId = sourceFolderID;
             
-                try {
                     // S3 write fileContext JSON to save tokens for later use.
                     let params = {
                         Bucket: process.env.S3_BUCKET,
@@ -184,12 +183,11 @@ module.exports.handler = async (event) => {
                     }
         
                     console.log('Request ID: ' + fileContext.requestId);
-        
-                    let s3Response = await new Upload({
-                        client: s3,
-                        params
-                    }).done()
+
+                    // create a new S3 bucket to work with
+                    const s3Response = await client.send(new PutObjectCommand( params ));
                     console.log(s3Response);
+                    console.debug('S3 Bucket Creation Success.');
             
                     let skillsWriter = new SkillsWriter(fileContext);
                     
@@ -201,10 +199,6 @@ module.exports.handler = async (event) => {
             
                     console.debug("returning response to box");
                     return {statusCode: 200, body: "Event Received and Sent to VI"};
-
-                } catch (e) {
-
-                }
 
             } else {
                 console.error('Security Keys Were Not Valid.');
