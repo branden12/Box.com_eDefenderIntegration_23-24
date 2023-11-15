@@ -136,6 +136,7 @@ module.exports.handler = async (event) => {
             const deleteS3Object = new DeleteObjectCommand(params);
             const deleteS3ObjectResponse = await client.send(deleteS3Object);
             console.log(deleteS3ObjectResponse);
+            console.log('S3 Bucket Deletion Success.')
 
         } catch(e) {
             console.error(e);
@@ -149,25 +150,32 @@ module.exports.handler = async (event) => {
     if (event && parsedBody.hasOwnProperty("type") && parsedBody.type === "skill_invocation") {
             console.debug(`Box event received: ${JSON.stringify(event)}`);
 
+        try {
             // check if request is valid
             let isValid = BoxSDK.validateWebhookMessage(event.body, event.headers, process.env.BOX_PRIMARY_KEY, process.env.BOX_SECONDARY_KEY);
             
             if (isValid) {
-                try {
-                    let videoIndexer = new VideoIndexer(process.env.APIGATEWAY); // Initialized with callback endpoint
-                    await videoIndexer.getToken(true);
+
+                let videoIndexer = new VideoIndexer(process.env.APIGATEWAY); // Initialized with callback endpoint
+                let VItoken = await videoIndexer.getToken(true);
+
+                if (VItoken.statusCode != 200) {
+                    console.error('Failed to Create a Video Indexer Object');
+                    return {statusCode: 400, body: "Check Error Log."};
+                }
                     
-                    // instantiate your two skill development helper tools
-                    let filesReader = new FilesReader(event.body);
-                    let fileContext = filesReader.getFileContext();
+                // instantiate your two skill development helper tools
+                let filesReader = new FilesReader(event.body);
+                let fileContext = filesReader.getFileContext();
         
-                    // attempt to get folderID from source where file was uploaded
-                    let sourceFolderID = parsedBody.source.parent.id;
-                    console.log("sourceFolderID: ", sourceFolderID);
+                // attempt to get folderID from source where file was uploaded
+                let sourceFolderID = parsedBody.source.parent.id;
+                console.log("sourceFolderID: ", sourceFolderID);
         
-                    // create new sourceFolderID for fileContext
-                    fileContext.folderId = sourceFolderID;
+                // create new sourceFolderID for fileContext
+                fileContext.folderId = sourceFolderID;
             
+                try {
                     // S3 write fileContext JSON to save tokens for later use.
                     let params = {
                         Bucket: process.env.S3_BUCKET,
@@ -192,18 +200,32 @@ module.exports.handler = async (event) => {
                     console.debug("video sent to VI");
             
                     console.debug("returning response to box");
-                    return {statusCode: 200};
+                    return {statusCode: 200, body: "Event Received and Sent to VI"};
 
-                } catch(e) {
-                    console.error(e);
+                } catch (e) {
+
                 }
 
             } else {
-                console.log('Security Keys Were Not Valid.');
-                response.status(200).send('Keys Invalid');
+                console.error('Security Keys Were Not Valid.');
+                return {statusCode: 401, body: "Invalid Security Keys"};
             }
+
+        } catch(e) {
+            console.error(e);
+
+            // In the case that an error occurs, return an error message to Box
+            let filesReader = new FilesReader(event.body);
+            let fileContext = filesReader.getFileContext();
+            let skillsWriter = new SkillsWriter(fileContext);
+
+            await skillsWriter.saveErrorCard(); // this displays the error message to the user
+            
+            return {statusCode: 400};
+        }
             
     }
+
     else {
         console.debug("Unknown request");
         console.log(event);
