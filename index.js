@@ -202,6 +202,14 @@ module.exports.handler = async (event) => {
 
             } else {
                 console.error('Security Keys Were Not Valid.');
+
+                // In the case that an error occurs, return an error message to Box
+                let filesReader = new FilesReader(event.body);
+                let fileContext = filesReader.getFileContext();
+                let skillsWriter = new SkillsWriter(fileContext);
+
+                await skillsWriter.saveErrorCard(); // this displays the error message to the user
+
                 return {statusCode: 401, body: "Invalid Security Keys"};
             }
 
