@@ -150,20 +150,12 @@ module.exports.handler = async (event) => {
     if (event && parsedBody.hasOwnProperty("type") && parsedBody.type === "skill_invocation") {
             console.debug(`Box event received: ${JSON.stringify(event)}`);
 
-        try {
             // check if request is valid
             let isValid = BoxSDK.validateWebhookMessage(event.body, event.headers, process.env.BOX_PRIMARY_KEY, process.env.BOX_SECONDARY_KEY);
             
             if (isValid) {
+            try {
 
-                let videoIndexer = new VideoIndexer(process.env.APIGATEWAY); // Initialized with callback endpoint
-                let VItoken = await videoIndexer.getToken(true);
-
-                if (VItoken.statusCode != 200) { // Handling VI initializing Errors
-                    console.error('Failed to Create a Video Indexer Object');
-                    return {statusCode: 400, body: "Check Error Log."};
-                }
-                    
                 // instantiate your two skill development helper tools
                 let filesReader = new FilesReader(event.body);
                 let fileContext = filesReader.getFileContext();
@@ -174,31 +166,75 @@ module.exports.handler = async (event) => {
         
                 // create new sourceFolderID for fileContext
                 fileContext.folderId = sourceFolderID;
-            
-                    // S3 write fileContext JSON to save tokens for later use.
-                    let params = {
-                        Bucket: process.env.S3_BUCKET,
-                        Key: fileContext.requestId,
-                        Body: JSON.stringify(fileContext)
-                    }
-        
-                    console.log('Request ID: ' + fileContext.requestId);
+                console.log('Request ID: ' + fileContext.requestId);
 
-                    // create a new S3 bucket to work with
-                    const s3Response = await client.send(new PutObjectCommand( params ));
-                    console.log(s3Response);
-                    console.debug('S3 Bucket Creation Success.');
-            
-                    let skillsWriter = new SkillsWriter(fileContext);
-                    
-                    await skillsWriter.saveProcessingCard();
+                let skillsWriter = new SkillsWriter(fileContext);
+                await skillsWriter.saveProcessingCard();
+
+
+                // creating a video indexer object
+                let videoIndexer = new VideoIndexer(process.env.APIGATEWAY); // Initialized with callback endpoint
+                let VItoken = await videoIndexer.getToken(true);
+
+                if (VItoken.statusCode !== 200) { // Handling VI initializing Errors
+                    console.error('Failed to Create a Video Indexer Object');
+                    await skillsWriter.saveErrorCard();
+                    return {statusCode: 400, body: "Check Error Log."};
+                }
+                   
                 
-                    console.debug("sending video to VI");
-                    await videoIndexer.upload(fileContext.fileName, fileContext.requestId, fileContext.fileDownloadURL,JSON.parse(event.body).skill.name); // Will POST a success when it's done indexing.
-                    console.debug("video sent to VI");
             
+                // S3 write fileContext JSON to save tokens for later use.
+                let params = {
+                    Bucket: process.env.S3_BUCKET,
+                    Key: fileContext.requestId,
+                    Body: JSON.stringify(fileContext)
+                }
+        
+                // create a new S3 bucket to work with
+                const s3Response = await client.send(new PutObjectCommand( params ));
+                console.log(s3Response);
+                console.debug('S3 Bucket Creation Success.');
+        
+                
+                // sending event info to VI
+                console.debug("sending video to VI");
+                const uploadVideo = await videoIndexer.upload(fileContext.fileName, fileContext.requestId, fileContext.fileDownloadURL,JSON.parse(event.body).skill.name); // Will POST a success when it's done indexing.
+                
+                if (uploadVideo.statusCode === 200) { // handling uploadVideo potential errors
+                    console.debug("video sent to VI");
                     console.debug("returning response to box");
                     return {statusCode: 200, body: "Event Received and Sent to VI"};
+
+                } 
+                else {
+                    await skillsWriter.saveErrorCard(); // error card to Box
+                    console.error('An Error Occured Uploading Video to VI');
+
+                    // delete the newly created S3 bucket object
+                    const deleteS3Object = await client.send(new DeleteObjectCommand({
+                        Bucket: process.env.S3_BUCKET,
+                        Key: fileContext.requestId 
+                    }));
+                    console.log(deleteS3Object);
+                    console.log('S3 Bucket Deletion Success.');
+
+                    return {statusCode: 400, body: "An Error Occured Uploading Video."};
+                }
+
+            } catch(e) {
+                console.error(e);
+    
+                // In the case that an error occurs, return an error message to Box
+                let filesReader = new FilesReader(event.body);
+                let fileContext = filesReader.getFileContext();
+                let skillsWriter = new SkillsWriter(fileContext);
+    
+                await skillsWriter.saveErrorCard(); // this displays the error message to the user
+                
+                return {statusCode: 400};
+            }
+        
 
             } else {
                 console.error('Security Keys Were Not Valid.');
@@ -212,19 +248,6 @@ module.exports.handler = async (event) => {
 
                 return {statusCode: 401, body: "Invalid Security Keys"};
             }
-
-        } catch(e) {
-            console.error(e);
-
-            // In the case that an error occurs, return an error message to Box
-            let filesReader = new FilesReader(event.body);
-            let fileContext = filesReader.getFileContext();
-            let skillsWriter = new SkillsWriter(fileContext);
-
-            await skillsWriter.saveErrorCard(); // this displays the error message to the user
-            
-            return {statusCode: 400};
-        }
             
     }
 

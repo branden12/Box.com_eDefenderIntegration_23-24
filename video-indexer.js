@@ -51,7 +51,9 @@ VideoIndexer.prototype.upload = function (fileName, requestId, fileUrl, skillnam
             console.log('headers upload:', result.headers);
 
             if (result.statusCode === 200) {
-                resolve("Success: Upload Video");
+                resolve({statusCode: result.statusCode, body: "Success: Upload Video"});
+            } else {
+                resolve({statusCode: result.statusCode, body: "Error."});
             }
         });
 
