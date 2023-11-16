@@ -16,13 +16,11 @@ const BoxSDK = require("box-node-sdk");
 const { FilesReader, SkillsWriter, SkillsErrorEnum } = require("./skills-kit-library/skills-kit-2.0.js");
 const {VideoIndexer, ConvertTime} = require("./video-indexer");
 const { Upload } = require("@aws-sdk/lib-storage"),
-      { S3, S3Client, GetObjectCommand, DeleteObjectCommand, PutObjectCommand } = require("@aws-sdk/client-s3");
-const { request } = require("express");
+      { S3Client, GetObjectCommand, DeleteObjectCommand, PutObjectCommand } = require("@aws-sdk/client-s3");
 const TranscribeDoc = require("./transcribe-doc").TranscribeDoc;
-
-var s3 = new S3();
 const client = new S3Client({});
-// const cloneDeep = require("lodash/cloneDeep"); // For deep cloning json objects
+
+
 
 module.exports.handler = async (event) => {
     
@@ -169,7 +167,8 @@ module.exports.handler = async (event) => {
                 console.log('Request ID: ' + fileContext.requestId);
 
                 let skillsWriter = new SkillsWriter(fileContext);
-                await skillsWriter.saveProcessingCard();
+                await skillsWriter.saveProcessingCard(); // processing message to Box
+
 
 
                 // creating a video indexer object
@@ -197,6 +196,7 @@ module.exports.handler = async (event) => {
                 console.debug('S3 Bucket Creation Success.');
         
                 
+
                 // sending event info to VI
                 console.debug("sending video to VI");
                 const uploadVideo = await videoIndexer.upload(fileContext.fileName, fileContext.requestId, fileContext.fileDownloadURL,JSON.parse(event.body).skill.name); // Will POST a success when it's done indexing.
@@ -218,6 +218,8 @@ module.exports.handler = async (event) => {
                     }));
                     console.log(deleteS3Object);
                     console.log('S3 Bucket Deletion Success.');
+
+
 
                     return {statusCode: 400, body: "An Error Occured Uploading Video."};
                 }
