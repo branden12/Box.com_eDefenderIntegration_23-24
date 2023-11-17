@@ -28,6 +28,19 @@ provider:
           - - "arn:aws:s3:::"
             - "Ref" : "ServerlessDeploymentBucket"
             - "/*"
+
+      Resource:
+        S3Bucket:
+          Type:'AWS::S3::Bucket'
+          Properties:
+          AccessControl: Private
+          LifecycleConfiguration:
+          Rules:
+            -
+              ExpirationInDays: 30
+              Prefix: '/'
+              Status: Enabled
+              
   iamManagedPolicies:
     # KMS Permissions
     - arn:aws:iam::755824957602:policy/KMS-Permissions
