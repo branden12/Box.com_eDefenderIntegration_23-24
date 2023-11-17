@@ -142,9 +142,14 @@ module.exports.handler = async (event) => {
         return;
     }
 
+
+
+
+
     let parsedBody = JSON.parse(event.body);
     console.log(parsedBody);
 
+    // Incoming from Box --> send to VI
     if (event && parsedBody.hasOwnProperty("type") && parsedBody.type === "skill_invocation") {
             console.debug(`Box event received: ${JSON.stringify(event)}`);
 
@@ -253,6 +258,9 @@ module.exports.handler = async (event) => {
             
     }
 
+
+
+    
     else {
         console.debug("Unknown request");
         console.log(event);
