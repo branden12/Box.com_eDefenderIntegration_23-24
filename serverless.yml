@@ -28,7 +28,12 @@ provider:
           - - "arn:aws:s3:::"
             - "Ref" : "ServerlessDeploymentBucket"
             - "/*"
-  
+  iamManagedPolicies:
+    # KMS Permissions
+    - arn:aws:iam::755824957602:policy/KMS-Permissions
+    # Secrets Manager Permissions
+    - arn:aws:iam::755824957602:policy/Secrets-Manager-Access-Policy
+
 functions:
   hello:
     handler: index.handler
