@@ -1,21 +1,25 @@
-service: box-video-skill-promise-donovan-new
+# Remember to change name
+service: box-video-skill-coby-dev-hello
 provider:
   name: aws
   runtime: nodejs14.x
   environment:
-      APIGATEWAY: 'ENTER_GENERATED_API_GATEWAY'
-      S3_BUCKET: 'ENTER_GENERATED_S3_BUCKET_NAME'
-      VI_ACCOUNT_ID: 'ENTER_VIDEO_INDEXER_ACCOUNT_ID'
-      VI_AUTH_KEY_1: 'ENTER_AUTH_KEY1'
-      VI_AUTH_KEY_2: 'ENTER_AUTH_KEY2'
+    APIGATEWAY: "ENTER_GENERATED_API_GATEWAY"
+    S3_BUCKET: "ENTER_GENERATED_S3_BUCKET_NAME"
+    VI_ACCOUNT_ID: "ENTER_VIDEO_INDEXER_ACCOUNT_ID"
+    VI_AUTH_KEY_1: "ENTER_AUTH_KEY1"
+    VI_AUTH_KEY_2: "ENTER_AUTH_KEY2"
   timeout: 28
-  
-  
+
   iamRoleStatements:
     - Effect: "Allow"
       Action:
         - "s3:ListBucket"
-      Resource: { "Fn::Join" : ["", ["arn:aws:s3:::", { "Ref" : "ServerlessDeploymentBucket" } ] ]  }
+      Resource:
+        {
+          "Fn::Join":
+            ["", ["arn:aws:s3:::", { "Ref": "ServerlessDeploymentBucket" }]],
+        }
     - Effect: "Allow"
       Action:
         - "s3:PutObject"
@@ -24,8 +28,8 @@ provider:
         Fn::Join:
           - ""
           - - "arn:aws:s3:::"
-            - "Ref" : "ServerlessDeploymentBucket"
-            - "/*" 		
+            - "Ref": "ServerlessDeploymentBucket"
+            - "/*"
   iamManagedPolicies:
     # KMS Permissions
     - arn:aws:iam::755824957602:policy/KMS-Permissions
@@ -39,6 +43,40 @@ functions:
       - http:
           path: /
           method: any
+
+
+#S3 Bucket Cleanup 
+resources:
+  Resources:
+    S3Bucket:
+      Type: "AWS::S3::Bucket"
+      Properties:
+        AccessControl: Private
+        LifecycleConfiguration:
+          Rules:
+            - 
+              ExpirationInDays: 30
+              Prefix: ""
+              Status: Enabled
+
+#API Gateway 
+functions:
+  hello:
+    handler: index.handler
+    events:
+      - http:
+          path: /
+          method: any
+          cors:
+            origins:
+              -"https://www.box.com"
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+            allowcredentials: false 
 
 plugins:
   - serverless-plugin-common-excludes
