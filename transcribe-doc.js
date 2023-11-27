@@ -41,24 +41,12 @@ try {
 }
 
 const secret = response.SecretString;
-  
-// const { getSecretValue } = require("./secret-manager-client.js");
-// const config = require('./config.json');
-
-// import fs from "fs";
-// import docx from "docx";
-// import { Readable } from ('stream');
-// import { Buffer } from ("buffer");
-// import BoxSDK from ("box-node-sdk");
-// import path from ('path');
-// import { getSecretValue } from "./secret-manager-client.js";
 
 // maximum number of tries for filename duplicates
 const MAX_TRIES = 10;
 
 function TranscribeDoc(data, fileName, folderId) {
     return new Promise(async (resolve, reject) => {
-        // const secret = getSecretValue('box-config'); //open Secret Manager client for our secret named 'box-config'
         const sdk = BoxSDK.getPreconfiguredInstance(secret);
         const appUserClient = sdk.getAppAuthClient('enterprise');
         
