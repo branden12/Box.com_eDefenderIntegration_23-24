@@ -37,8 +37,6 @@ provider:
     - arn:aws:iam::755824957602:policy/Secrets-Manager-Access-Policy
 
 
-
-
 #S3 Bucket Cleanup 
 resources:
   Resources:
@@ -50,7 +48,7 @@ resources:
           Rules:
             - 
               ExpirationInDays: 30
-              Prefix: ""
+              Prefix: "Expires"
               Status: Enabled
 
 #API Gateway 
