@@ -167,7 +167,7 @@ module.exports.handler = async (event) => {
             let params = {
                 Bucket: process.env.S3_BUCKET,
                 //Add the prefix here
-                Key: Expires/fileContext.requestId,
+                Key: 'Expires/' + fileContext.requestId,
                 Body: JSON.stringify(fileContext)
             }
 

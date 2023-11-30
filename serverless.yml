@@ -48,7 +48,7 @@ resources:
           Rules:
             - 
               ExpirationInDays: 30
-              Prefix: "Expires"
+              Prefix: "Expires/"
               Status: Enabled
 
 #API Gateway 
