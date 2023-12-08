@@ -40,7 +40,13 @@ try {
     throw error;
 }
 
-const secret = response.SecretString;
+const secret = (function(secretString) {
+    try {
+        return JSON.parse(SecretString);
+    } catch (error) {
+        console.error("Error parsing secret string: ", error);
+    }
+})(response.SecretString);
 
 // maximum number of tries for filename duplicates
 const MAX_TRIES = 10;
