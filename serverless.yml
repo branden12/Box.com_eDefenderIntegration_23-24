@@ -1,4 +1,4 @@
-service: box-video-skill-promise-donovan-new
+service: box-video-skill-promise-donovan-24
 provider:
   name: aws
   runtime: nodejs14.x
