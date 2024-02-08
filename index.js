@@ -11,14 +11,14 @@
  *    time to process. Will need to use S3 to store fileContext JSON.
  */
 
-'use strict';
+
 // const { FilesReader, SkillsWriter, SkillsErrorEnum } = require("./skills-kit-library/skills-kit-2.0.js");
 // const {VideoIndexer, ConvertTime} = require("./video-indexer");
 // const AWS = require("aws-sdk");
 // const { request } = require("express");
 // const sendErrorEmail = require("./email").sendErrorEmail;
 // const TranscribeDoc = require("./transcribe-doc").TranscribeDoc;
-
+'use strict';
 import { FilesReader, SkillsWriter, SkillsErrorEnum } from "./skills-kit-library/skills-kit-2.0.js";
 import {VideoIndexer, ConvertTime} from "./video-indexer.js";
 import AWS from "aws-sdk";
