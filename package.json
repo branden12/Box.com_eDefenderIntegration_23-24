@@ -1,8 +1,7 @@
 {
-  "name": "samuel-moon-box",
+  "name": "donovan-box",
   "version": "1.0.0",
   "main": "index.js",
-  "type": "module",
   "dependencies": {
     "@aws-sdk/client-secrets-manager": "^3.509.0",
     "aws-sdk": "^2.1482.0",

@@ -21,8 +21,8 @@
 'use strict';
 const { FilesReader, SkillsWriter, SkillsErrorEnum } = require('./skills-kit-library/skills-kit-2.0.js');
 const {VideoIndexer, ConvertTime} = require('./video-indexer.js');
-const {AWS} = require('aws-sdk');
-import { request } from "express";
+const AWS = require('aws-sdk');
+const express = require("express");
 // import sendErrorEmail from "./email".sendErrorEmail;
 const {TranscribeDoc} = require('./transcribe-doc.js');
 
