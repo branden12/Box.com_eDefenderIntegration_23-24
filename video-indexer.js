@@ -161,4 +161,4 @@ export function ConvertTime(hhmmss) {
     return time[0] * 3600.0 + time[1] * 60.0 + time[2] * 1.0;
 }
 
-module.exports = {VideoIndexer};
+module.exports = {VideoIndexer, ConvertTime};
