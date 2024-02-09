@@ -6,40 +6,38 @@ const {TranscribeDoc} = require('./transcribe-doc.js');
 
 const s3Client = new S3Client({ region: "us-east-1" }); // or your AWS region
 
-async function getS3Object(bucketName, objectKey) {
-    const getObjectParams = {
-        Bucket: bucketName,
-        Key: objectKey,
-    };
-    try {
-        const command = new GetObjectCommand(getObjectParams);
-        const data = await s3Client.send(command);
-        // Note: For reading the object's data, especially if it's a stream, handle accordingly
-        return data;
-    } catch (error) {
-        console.error("Error in getObject:", error);
-        throw error;
-    }
-}
-
-async function uploadToS3(bucketName, objectKey, body) {
-    const uploadParams = {
-        Bucket: bucketName,
-        Key: objectKey,
-        Body: body, // this can be a Buffer, Typed Array, Blob, String, ReadableStream
-    };
-    try {
-        const command = new PutObjectCommand(uploadParams);
-        const data = await s3Client.send(command);
-        return data; // Contains the response from S3
-    } catch (error) {
-        console.error("Error in upload:", error);
-        throw error;
-    }
-}
-
-
 module.exports.handler = async (event) => {
+    async function getS3Object(bucketName, objectKey) {
+        const getObjectParams = {
+            Bucket: bucketName,
+            Key: objectKey,
+        };
+        try {
+            const command = new GetObjectCommand(getObjectParams);
+            const data = await s3Client.send(command);
+            // Note: For reading the object's data, especially if it's a stream, handle accordingly
+            return data;
+        } catch (error) {
+            console.error("Error in getObject:", error);
+            throw error;
+        }
+    }
+    
+    async function uploadToS3(bucketName, objectKey, body) {
+        const uploadParams = {
+            Bucket: bucketName,
+            Key: objectKey,
+            Body: body, // this can be a Buffer, Typed Array, Blob, String, ReadableStream
+        };
+        try {
+            const command = new PutObjectCommand(uploadParams);
+            const data = await s3Client.send(command);
+            return data; // Contains the response from S3
+        } catch (error) {
+            console.error("Error in upload:", error);
+            throw error;
+        }
+    }
     
     // VideoIndexer event
     if (event && event.queryStringParameters && event.queryStringParameters.state === "Processed") {
