@@ -1,5 +1,5 @@
 'use strict';
-import https from "https"; // Low level API for HTTPS request/response
+const https = require("https");  // Low level API for HTTPS request/response
 
 /**
  * @param {*} apiGateway - Used for callback when uploaded video indexing is finished.
