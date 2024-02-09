@@ -156,7 +156,7 @@ VideoIndexer.prototype.getToken = function (allowEdit) {
     });
 };
 
-export function ConvertTime(hhmmss) {
+function ConvertTime(hhmmss) {
     const time = hhmmss.split(":");
     return time[0] * 3600.0 + time[1] * 60.0 + time[2] * 1.0;
 }
