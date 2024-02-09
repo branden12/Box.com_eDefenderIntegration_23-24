@@ -1,4 +1,3 @@
-'use strict';
 const https = require("https");  // Low level API for HTTPS request/response
 
 /**

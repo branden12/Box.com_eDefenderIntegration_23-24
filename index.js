@@ -7,6 +7,7 @@ const {TranscribeDoc} = require('./transcribe-doc.js');
 const s3Client = new S3Client({ region: "us-east-1" }); // or your AWS region
 
 module.exports.handler = async (event) => {
+    console.log("Start function");
     async function getS3Object(bucketName, objectKey) {
         const getObjectParams = {
             Bucket: bucketName,
