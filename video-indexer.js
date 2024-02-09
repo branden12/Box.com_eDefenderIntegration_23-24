@@ -1,4 +1,4 @@
-// Samuel Moon
+'use strict';
 import https from "https"; // Low level API for HTTPS request/response
 
 /**
