@@ -151,8 +151,9 @@ module.exports.handler = async (event) => {
         return;
     }
 
+    console.log('Begin Parsed Body\n')
     let parsedBody = JSON.parse(event.body);
-    console.log(parsedBody);
+    console.log('Parsed Body: ', parsedBody);
 
     if (event && parsedBody.hasOwnProperty("type") && parsedBody.type === "skill_invocation") {
         try {
