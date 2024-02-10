@@ -16,6 +16,8 @@ module.exports.handler = async (event) => {
         try {
             const command = new GetObjectCommand(getObjectParams);
             const data = await s3Client.send(command);
+            console.log("Data: \n"); //test
+            console.log(data) //test
             // Note: For reading the object's data, especially if it's a stream, handle accordingly
             return data;
         } catch (error) {
@@ -38,6 +40,16 @@ module.exports.handler = async (event) => {
             console.error("Error in upload:", error);
             throw error;
         }
+    }
+
+    // test helper function to help with VI error
+    async function streamToString(stream) {
+        const chunks = [];
+        return new Promise((resolve, reject) => {
+            stream.on('data', (chunk) => chunks.push(Buffer.from(chunk)));
+            stream.on('error', (err) => reject(err));
+            stream.on('end', () => resolve(Buffer.concat(chunks).toString('utf-8')));
+        });
     }
     
     // VideoIndexer event
@@ -64,7 +76,8 @@ module.exports.handler = async (event) => {
 
             // "Body" is capital "B", not lowercase like "body".
             console.log('This working??')
-            let fileContext = JSON.parse(bucketData.Body.toString());
+            const bodyContents = await streamToString(bucketData.Body);
+            let fileContext = JSON.parse(bodyContents);
             console.log(fileContext);
             console.log(fileContext.fileWriteToken);
 
