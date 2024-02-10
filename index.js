@@ -63,6 +63,7 @@ module.exports.handler = async (event) => {
             console.log(bucketData);
 
             // "Body" is capital "B", not lowercase like "body".
+            console.log('This working??')
             let fileContext = JSON.parse(bucketData.Body.toString());
             console.log(fileContext);
             console.log(fileContext.fileWriteToken);
