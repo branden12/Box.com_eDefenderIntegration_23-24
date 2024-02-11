@@ -12,16 +12,15 @@
  */
 
 'use strict';
+const BoxSDK = require("box-node-sdk");
 const { FilesReader, SkillsWriter, SkillsErrorEnum } = require("./skills-kit-library/skills-kit-2.0.js");
 const {VideoIndexer, ConvertTime} = require("./video-indexer");
 const { Upload } = require("@aws-sdk/lib-storage"),
-      { S3, S3Client, GetObjectCommand, DeleteObjectCommand } = require("@aws-sdk/client-s3");
-const { request } = require("express");
+      { S3Client, GetObjectCommand, DeleteObjectCommand, PutObjectCommand } = require("@aws-sdk/client-s3");
 const TranscribeDoc = require("./transcribe-doc").TranscribeDoc;
-
-var s3 = new S3();
 const client = new S3Client({});
-// const cloneDeep = require("lodash/cloneDeep"); // For deep cloning json objects
+
+
 
 module.exports.handler = async (event) => {
     
@@ -31,21 +30,28 @@ module.exports.handler = async (event) => {
         console.debug(`VideoIndexer finished processing event received: ${JSON.stringify(event)}`);
 
         try {
+            // checking to make sure videoID and requestID are passed through
             const videoId = event.queryStringParameters.id;
             const requestId = event.queryStringParameters.requestId;
 
-            let videoIndexer = new VideoIndexer(process.env.APIGATEWAY); // Initialized with callback endpoint
-            await videoIndexer.getToken(false);
+            console.debug('Request ID: ' + requestId);
+            console.debug('Video ID: ' + videoId);
 
+            // dealing with videoIndexer potential creation errors
+            let videoIndexer = new VideoIndexer(process.env.APIGATEWAY); // Initialized with callback endpoint
+            let VItoken = await videoIndexer.getToken(false);
+
+            if (VItoken.statusCode !== 200) { // Handling VI initializing Errors
+                console.error('Failed to Create a Video Indexer Object');
+                await skillsWriter.saveErrorCard();
+                return {statusCode: 400, body: "Check Error Log."};
+            }
+
+            // calling the bucket we built during the first call using the requestID
             let params = {
                 Bucket: process.env.S3_BUCKET,
                 Key: requestId
             }
-
-            console.log('Request ID: ' + requestId);
-
-            // let bucketData = await s3.getObject(params).promise();
-            // console.log(bucketData);
 
             const command = new GetObjectCommand(params);
             const bucketData = await client.send(command);
@@ -63,10 +69,10 @@ module.exports.handler = async (event) => {
             console.log("folderId after VI finished: ", folderId);
 
             let skillsWriter = new SkillsWriter(fileContext);
-
             const indexerData = await videoIndexer.getData(videoId); // Can create skill cards after data extraction
                                                                     // This method also stores videoId for future use.
 
+             // Filling out cards that will be shown on the Box UI                                                           
             const cards = [];
 
             let fileDuration = indexerData.summarizedInsights.duration.seconds;
@@ -120,77 +126,187 @@ module.exports.handler = async (event) => {
                 cards.push(await skillsWriter.createFacesCard(faces, fileDuration));
             }
 
-            // New TranscribeDoc section
-            console.debug('Calling transcribeDoc');
-            console.debug(TranscribeDoc);
 
-            await TranscribeDoc(indexerData, fileContext.fileName, folderId);
+            try {
+                // New TranscribeDoc section
+                console.debug('Calling transcribeDoc');
+                console.debug(TranscribeDoc);
+                await TranscribeDoc(indexerData, fileContext.fileName, folderId);
 
-            console.log("After TranscribeDocBefore saveDataCards");
-            await skillsWriter.saveDataCards(cards);
-            console.log("After saveDataCards");
-            // This was where transcribe-doc call was originally placed
+                // if transcribe doc fails, save cards regardless
+                console.log("After TranscribeDocBefore saveDataCards");
+                await skillsWriter.saveDataCards(cards);
+                console.log("After saveDataCards");
 
-            // delete the newly created S3 bucket object
-            const deleteS3Object = new DeleteObjectCommand(params);
-            const deleteS3ObjectResponse = await client.send(deleteS3Object);
-            console.log(deleteS3ObjectResponse);
+                // delete the newly created S3 bucket object
+                const deleteS3Object = new DeleteObjectCommand(params);
+                const deleteS3ObjectResponse = await client.send(deleteS3Object);
+                console.log(deleteS3ObjectResponse);
+                console.log('S3 Bucket Deletion Success.');
+            
+            }
+            catch(e) {
+                console.debug("TRANSCRIBE DOC FAILED, process continues.")
+                await skillsWriter.saveDataCards(cards);
+                console.log("After saveDataCards");
+    
+                // delete the newly created S3 bucket object
+                const deleteS3Object = new DeleteObjectCommand(params);
+                const deleteS3ObjectResponse = await client.send(deleteS3Object);
+                console.log(deleteS3ObjectResponse);
+                console.log('S3 Bucket Deletion Success.');
+            }   
+
 
         } catch(e) {
             console.error(e);
+
+            const requestId = event.queryStringParameters.requestId;
+            let params = {
+                Bucket: process.env.S3_BUCKET,
+                Key: requestId
+            }
+
+            const command = new GetObjectCommand(params);
+            const bucketData = await client.send(command);
+            const response = await bucketData.Body.transformToString();
+            let fileContext = JSON.parse(response);
+            let skillsWriter = new SkillsWriter(fileContext);
+
+            // delete the S3 bucket object
+            const deleteS3Object = await client.send(new DeleteObjectCommand({
+                Bucket: process.env.S3_BUCKET,
+                Key: requestId
+            }));
+            console.log(deleteS3Object);
+            console.log('S3 Bucket Deletion Success.');
+
+            await skillsWriter.saveErrorCard(); // this displays the error message to the user
+            
+            return {statusCode: 400};
         }
         return;
     }
 
+
+
+
+
     let parsedBody = JSON.parse(event.body);
     console.log(parsedBody);
 
+    // Incoming from Box --> send to VI
     if (event && parsedBody.hasOwnProperty("type") && parsedBody.type === "skill_invocation") {
-        try {
             console.debug(`Box event received: ${JSON.stringify(event)}`);
-            let videoIndexer = new VideoIndexer(process.env.APIGATEWAY); // Initialized with callback endpoint
-            await videoIndexer.getToken(true);
+
+            // check if request is valid
+            let isValid = BoxSDK.validateWebhookMessage(event.body, event.headers, process.env.BOX_PRIMARY_KEY, process.env.BOX_SECONDARY_KEY);
             
-            // instantiate your two skill development helper tools
-            let filesReader = new FilesReader(event.body);
-            let fileContext = filesReader.getFileContext();
+            if (isValid) {
+            try {
 
-            // attempt to get folderID from source where file was uploaded
-            let sourceFolderID = parsedBody.source.parent.id;
-            console.log("sourceFolderID: ", sourceFolderID);
-
-            // create new sourceFolderID for fileContext
-            fileContext.folderId = sourceFolderID;
-    
-            // S3 write fileContext JSON to save tokens for later use.
-            let params = {
-                Bucket: process.env.S3_BUCKET,
-                Key: fileContext.requestId,
-                Body: JSON.stringify(fileContext)
-            }
-
-            console.log('Request ID: ' + fileContext.requestId);
-
-            let s3Response = await new Upload({
-                client: s3,
-                params
-            }).done()
-            console.log(s3Response);
-    
-            let skillsWriter = new SkillsWriter(fileContext);
-            
-            await skillsWriter.saveProcessingCard();
+                // instantiate your two skill development helper tools
+                let filesReader = new FilesReader(event.body);
+                let fileContext = filesReader.getFileContext();
         
-            console.debug("sending video to VI");
-            await videoIndexer.upload(fileContext.fileName, fileContext.requestId, fileContext.fileDownloadURL,JSON.parse(event.body).skill.name); // Will POST a success when it's done indexing.
-            console.debug("video sent to VI");
+                // attempt to get folderID from source where file was uploaded
+                let sourceFolderID = parsedBody.source.parent.id;
+                console.log("sourceFolderID: ", sourceFolderID);
+        
+                // create new sourceFolderID for fileContext
+                fileContext.folderId = sourceFolderID;
+                console.log('Request ID: ' + fileContext.requestId);
+
+                let skillsWriter = new SkillsWriter(fileContext);
+                await skillsWriter.saveProcessingCard(); // processing message to Box
+
+
+
+                // creating a video indexer object
+                let videoIndexer = new VideoIndexer(process.env.APIGATEWAY); // Initialized with callback endpoint
+                let VItoken = await videoIndexer.getToken(true);
+
+                if (VItoken.statusCode !== 200) { // Handling VI initializing Errors
+                    console.error('Failed to Create a Video Indexer Object');
+                    await skillsWriter.saveErrorCard();
+                    return {statusCode: 400, body: "Check Error Log."};
+                }
+                   
+                
+            
+                // S3 write fileContext JSON to save tokens for later use.
+                let params = {
+                    Bucket: process.env.S3_BUCKET,
+                    Key: fileContext.requestId,
+                    Body: JSON.stringify(fileContext)
+                }
+        
+                // create a new S3 bucket to work with
+                const s3Response = await client.send(new PutObjectCommand( params ));
+                console.log(s3Response);
+                console.debug('S3 Bucket Creation Success.');
+        
+                
+
+                // sending event info to VI
+                console.debug("sending video to VI");
+                const uploadVideo = await videoIndexer.upload(fileContext.fileName, fileContext.requestId, fileContext.fileDownloadURL,JSON.parse(event.body).skill.name); // Will POST a success when it's done indexing.
+                
+                if (uploadVideo.statusCode === 200) { // handling uploadVideo potential errors
+                    console.debug("video sent to VI");
+                    console.debug("returning response to box");
+                    return {statusCode: 200, body: "Event Received and Sent to VI"};
+
+                } 
+                else {
+                    await skillsWriter.saveErrorCard(); // error card to Box
+                    console.error('An Error Occured Uploading Video to VI');
+
+                    // delete the newly created S3 bucket object
+                    const deleteS3Object = await client.send(new DeleteObjectCommand({
+                        Bucket: process.env.S3_BUCKET,
+                        Key: fileContext.requestId 
+                    }));
+                    console.log(deleteS3Object);
+                    console.log('S3 Bucket Deletion Success.');
+
+
+
+                    return {statusCode: 400, body: "An Error Occured Uploading Video."};
+                }
+
+            } catch(e) {
+                console.error(e);
     
-            console.debug("returning response to box");
-            return {statusCode: 200};
-        } catch(e) {
-            console.error(e);
-        }
+                // In the case that an error occurs, return an error message to Box
+                let filesReader = new FilesReader(event.body);
+                let fileContext = filesReader.getFileContext();
+                let skillsWriter = new SkillsWriter(fileContext);
+    
+                await skillsWriter.saveErrorCard(); // this displays the error message to the user
+                
+                return {statusCode: 400};
+            }
+        
+
+            } else {
+                console.error('Security Keys Were Not Valid.');
+
+                // In the case that an error occurs, return an error message to Box
+                let filesReader = new FilesReader(event.body);
+                let fileContext = filesReader.getFileContext();
+                let skillsWriter = new SkillsWriter(fileContext);
+
+                await skillsWriter.saveErrorCard(); // this displays the error message to the user
+
+                return {statusCode: 401, body: "Invalid Security Keys"};
+            }
+            
     }
+
+
+
+    
     else {
         console.debug("Unknown request");
         console.log(event);
