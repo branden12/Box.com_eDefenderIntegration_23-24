@@ -1,22 +1,23 @@
 {
   "name": "sbpd-integration",
-  "version": "2.0.0",
+  "version": "1.0.0",
   "main": "index.js",
   "dependencies": {
-    "aws-sdk": "^2.595.0",
-    "box-node-sdk": "^2.8.1",
+    "@aws-sdk/client-s3": "^3.437.0",
+    "@aws-sdk/lib-storage": "^3.437.0",
+    "box-node-sdk": "^3.3.0",
     "docx": "^7.8.2",
     "eslint": "^8.51.0",
     "express": "^4.17.1",
-    "jest": "^24.9.0",
-    "jimp": "^0.9.3",
+    "jest": "^29.7.0",
+    "jimp": "^0.22.10",
     "lodash": "^4.17.15",
     "nodemailer": "^6.4.2",
     "path": "^0.12.7",
     "url-template": "^2.0.8"
   },
   "devDependencies": {
-    "serverless": "^3.35.2",
+    "serverless": "^3.28.0",
     "serverless-plugin-common-excludes": "^4.0.0",
     "serverless-plugin-include-dependencies": "^5.0.0"
   },
