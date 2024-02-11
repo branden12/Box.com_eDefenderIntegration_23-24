@@ -30,21 +30,28 @@ module.exports.handler = async (event) => {
         console.debug(`VideoIndexer finished processing event received: ${JSON.stringify(event)}`);
 
         try {
+            // checking to make sure videoID and requestID are passed through
             const videoId = event.queryStringParameters.id;
             const requestId = event.queryStringParameters.requestId;
 
-            let videoIndexer = new VideoIndexer(process.env.APIGATEWAY); // Initialized with callback endpoint
-            await videoIndexer.getToken(false);
+            console.debug('Request ID: ' + requestId);
+            console.debug('Video ID: ' + videoId);
 
+            // dealing with videoIndexer potential creation errors
+            let videoIndexer = new VideoIndexer(process.env.APIGATEWAY); // Initialized with callback endpoint
+            let VItoken = await videoIndexer.getToken(false);
+
+            if (VItoken.statusCode !== 200) { // Handling VI initializing Errors
+                console.error('Failed to Create a Video Indexer Object');
+                await skillsWriter.saveErrorCard();
+                return {statusCode: 400, body: "Check Error Log."};
+            }
+
+            // calling the bucket we built during the first call using the requestID
             let params = {
                 Bucket: process.env.S3_BUCKET,
                 Key: requestId
             }
-
-            console.log('Request ID: ' + requestId);
-
-            // let bucketData = await s3.getObject(params).promise();
-            // console.log(bucketData);
 
             const command = new GetObjectCommand(params);
             const bucketData = await client.send(command);
@@ -62,10 +69,10 @@ module.exports.handler = async (event) => {
             console.log("folderId after VI finished: ", folderId);
 
             let skillsWriter = new SkillsWriter(fileContext);
-
             const indexerData = await videoIndexer.getData(videoId); // Can create skill cards after data extraction
                                                                     // This method also stores videoId for future use.
 
+             // Filling out cards that will be shown on the Box UI                                                           
             const cards = [];
 
             let fileDuration = indexerData.summarizedInsights.duration.seconds;
@@ -119,25 +126,64 @@ module.exports.handler = async (event) => {
                 cards.push(await skillsWriter.createFacesCard(faces, fileDuration));
             }
 
-            // New TranscribeDoc section
-            console.debug('Calling transcribeDoc');
-            console.debug(TranscribeDoc);
 
-            await TranscribeDoc(indexerData, fileContext.fileName, folderId);
+            try {
+                // New TranscribeDoc section
+                console.debug('Calling transcribeDoc');
+                console.debug(TranscribeDoc);
+                await TranscribeDoc(indexerData, fileContext.fileName, folderId);
 
-            console.log("After TranscribeDocBefore saveDataCards");
-            await skillsWriter.saveDataCards(cards);
-            console.log("After saveDataCards");
-            // This was where transcribe-doc call was originally placed
+                // if transcribe doc fails, save cards regardless
+                console.log("After TranscribeDocBefore saveDataCards");
+                await skillsWriter.saveDataCards(cards);
+                console.log("After saveDataCards");
 
-            // delete the newly created S3 bucket object
-            const deleteS3Object = new DeleteObjectCommand(params);
-            const deleteS3ObjectResponse = await client.send(deleteS3Object);
-            console.log(deleteS3ObjectResponse);
-            console.log('S3 Bucket Deletion Success.');
+                // delete the newly created S3 bucket object
+                const deleteS3Object = new DeleteObjectCommand(params);
+                const deleteS3ObjectResponse = await client.send(deleteS3Object);
+                console.log(deleteS3ObjectResponse);
+                console.log('S3 Bucket Deletion Success.');
+            
+            }
+            catch(e) {
+                console.debug("TRANSCRIBE DOC FAILED, process continues.")
+                await skillsWriter.saveDataCards(cards);
+                console.log("After saveDataCards");
+    
+                // delete the newly created S3 bucket object
+                const deleteS3Object = new DeleteObjectCommand(params);
+                const deleteS3ObjectResponse = await client.send(deleteS3Object);
+                console.log(deleteS3ObjectResponse);
+                console.log('S3 Bucket Deletion Success.');
+            }   
+
 
         } catch(e) {
             console.error(e);
+
+            const requestId = event.queryStringParameters.requestId;
+            let params = {
+                Bucket: process.env.S3_BUCKET,
+                Key: requestId
+            }
+
+            const command = new GetObjectCommand(params);
+            const bucketData = await client.send(command);
+            const response = await bucketData.Body.transformToString();
+            let fileContext = JSON.parse(response);
+            let skillsWriter = new SkillsWriter(fileContext);
+
+            // delete the S3 bucket object
+            const deleteS3Object = await client.send(new DeleteObjectCommand({
+                Bucket: process.env.S3_BUCKET,
+                Key: requestId
+            }));
+            console.log(deleteS3Object);
+            console.log('S3 Bucket Deletion Success.');
+
+            await skillsWriter.saveErrorCard(); // this displays the error message to the user
+            
+            return {statusCode: 400};
         }
         return;
     }
