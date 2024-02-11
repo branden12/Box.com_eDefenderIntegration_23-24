@@ -1,5 +1,5 @@
 # dont forget to change the 'service' to your name
-service: box-video-skill-jackie
+service: box-video-skill-
 provider:
   name: aws
   runtime: nodejs18.x
