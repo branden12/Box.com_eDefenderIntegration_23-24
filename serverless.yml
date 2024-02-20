@@ -1,4 +1,4 @@
-service: box-video-skill-promise-donovan-24
+service: SecretsManagerKeyTest-Luis
 provider:
   name: aws
   runtime: nodejs18.x
