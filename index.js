@@ -4,7 +4,7 @@ const {VideoIndexer, ConvertTime} = require('./video-indexer.js');
 const { S3Client, GetObjectCommand, PutObjectCommand } = require("@aws-sdk/client-s3");
 const {TranscribeDoc} = require('./transcribe-doc.js');
 
-const s3Client = new S3Client({ region: "us-east-1" }); // or your AWS region
+const s3Client = new S3Client({ region: "us-east-1" }); 
 
 module.exports.handler = async (event) => {
     console.log("Start function");
@@ -30,7 +30,7 @@ module.exports.handler = async (event) => {
         const uploadParams = {
             Bucket: bucketName,
             Key: objectKey,
-            Body: body, // this can be a Buffer, Typed Array, Blob, String, ReadableStream
+            Body: body,
         };
         try {
             const command = new PutObjectCommand(uploadParams);
@@ -42,7 +42,7 @@ module.exports.handler = async (event) => {
         }
     }
 
-    // test helper function to help with VI error
+    // test helper function to help with VI error caused by JSON parsing
     async function streamToString(stream) {
         const chunks = [];
         return new Promise((resolve, reject) => {
