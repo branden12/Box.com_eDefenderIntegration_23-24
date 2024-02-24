@@ -1,4 +1,4 @@
-service: SecretsManagerKeyTest-Luis
+service: EveryoneSecretsManager-Test
 provider:
   name: aws
   runtime: nodejs18.x
@@ -31,7 +31,21 @@ provider:
     - arn:aws:iam::755824957602:policy/KMS-Permissions
     # Secrets Manager Permissions
     - arn:aws:iam::755824957602:policy/Secrets-Manager-Access-Policy
-
+    
+#S3 Bucket Cleanup 
+resources:
+  Resources:
+    S3Bucket:
+      Type: "AWS::S3::Bucket"
+      Properties:
+        AccessControl: Private
+        LifecycleConfiguration:
+          Rules:
+            - 
+              ExpirationInDays: 30
+              Prefix: "Expires/"
+              Status: Enabled
+#API Gateway
 functions:
   hello:
     handler: index.handler
@@ -39,6 +53,16 @@ functions:
       - http:
           path: /
           method: any
+          cors:
+            origins:
+              -"https://www.box.com"
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+            allowcredentials: false
     
 
 plugins:

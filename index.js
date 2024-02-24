@@ -189,7 +189,8 @@ module.exports.handler = async (event) => {
             // S3 write fileContext JSON to save tokens for later use.
             let params = {
                 Bucket: process.env.S3_BUCKET,
-                Key: fileContext.requestId,
+                //Add the prefix here
+                Key: 'Expires/' + fileContext.requestId,
                 Body: JSON.stringify(fileContext)
             }
 
