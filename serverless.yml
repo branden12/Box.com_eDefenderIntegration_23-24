@@ -62,7 +62,7 @@ functions:
               - Authorization
               - X-Api-Key
               - X-Amz-Security-Token
-            allowcredentials: false
+            allowCredentials: false
     
 
 plugins:

@@ -6,59 +6,33 @@ const { Buffer } = require("buffer");
 const BoxSDK = require("box-node-sdk");
 const path = require('path');
 
-// Use this code snippet in your app.
-// If you need more information about configurations or implementing the sample code, visit the AWS docs:
-// https://docs.aws.amazon.com/sdk-for-javascript/v3/developer-guide/getting-started.html
-
-// Use this code snippet in your app.
-// If you need more information about configurations or implementing the sample code, visit the AWS docs:
-// https://docs.aws.amazon.com/sdk-for-javascript/v3/developer-guide/getting-started.html
-
-import {
-    SecretsManagerClient,
-    GetSecretValueCommand,
-} from "@aws-sdk/client-secrets-manager";
-
+const { SecretsManagerClient, GetSecretValueCommand } = require("@aws-sdk/client-secrets-manager");
 const secret_name = "box-config";
+const region = 'us-east-1'
+const client = new SecretsManagerClient({region});
 
-const client = new SecretsManagerClient({
-    region: "us-east-1",
-});
+const MAX_TRIES = 10; // maximum number of tries for filename duplicates
 
-let response;
-
-try {
-    response = await client.send(
-        new GetSecretValueCommand({
-            SecretId: secret_name,
-            VersionStage: "AWSCURRENT", // VersionStage defaults to AWSCURRENT if unspecified
-        })
-    );
-} catch (error) {
-    // For a list of exceptions thrown, see
-    // https://docs.aws.amazon.com/secretsmanager/latest/apireference/API_GetSecretValue.html
-    throw error;
+async function getSecret() {
+    try {
+        const data = await client.send(new GetSecretValueCommand({ SecretId: secret_name }));
+        return JSON.parse(data.SecretString); // Ensure this is correctly capitalized
+    } catch (error) {
+        console.error("Error retrieving secret:", error);
+        throw error; // Rethrow the error to handle it in the calling function
+    }
 }
 
-const secret = response.SecretString;
-  
-// const { getSecretValue } = require("./secret-manager-client.js");
-// const config = require('./config.json');
-
-// import fs from "fs";
-// import docx from "docx";
-// import { Readable } from ('stream');
-// import { Buffer } from ("buffer");
-// import BoxSDK from ("box-node-sdk");
-// import path from ('path');
-// import { getSecretValue } from "./secret-manager-client.js";
-
-// maximum number of tries for filename duplicates
-const MAX_TRIES = 10;
-
-function TranscribeDoc(data, fileName, folderId) {
+async function TranscribeDoc(data, fileName, folderId) {
+    let secret;
+    try {
+        secret = await getSecret();
+    } catch (error) {
+        console.error("Failed to retrieve secret: ", error);
+        throw error;
+    }
+    
     return new Promise(async (resolve, reject) => {
-        // const secret = getSecretValue('box-config'); //open Secret Manager client for our secret named 'box-config'
         const sdk = BoxSDK.getPreconfiguredInstance(secret);
         const appUserClient = sdk.getAppAuthClient('enterprise');
         

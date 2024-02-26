@@ -1,5 +1,4 @@
-// Samuel Moon
-import https from "https"; // Low level API for HTTPS request/response
+const https = require("https");  // Low level API for HTTPS request/response
 
 /**
  * @param {*} apiGateway - Used for callback when uploaded video indexing is finished.
@@ -156,9 +155,9 @@ VideoIndexer.prototype.getToken = function (allowEdit) {
     });
 };
 
-export function ConvertTime(hhmmss) {
+function ConvertTime(hhmmss) {
     const time = hhmmss.split(":");
     return time[0] * 3600.0 + time[1] * 60.0 + time[2] * 1.0;
 }
 
-module.exports = {VideoIndexer};
+module.exports = {VideoIndexer, ConvertTime};

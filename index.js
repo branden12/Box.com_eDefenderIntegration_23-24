@@ -1,36 +1,56 @@
-/**
- * Samuel Moon >> AJ Voisan
- * 
- * Notes (update 12/23/19):
- * 1. Environment variables are set on the lambda configuration page.
- *    API Gateway URL set on process.env.APIGATEWAY
- * 2. Timeout is set at 15 minutes. Storing JSON outside handler or in
- *    the /tmp/ directory is unreliable, as they are reliant on Lambda's
- *    execution context.
- * 3. Execution context is garbage collected on videos that take a long
- *    time to process. Will need to use S3 to store fileContext JSON.
- */
-
 'use strict';
-// const { FilesReader, SkillsWriter, SkillsErrorEnum } = require("./skills-kit-library/skills-kit-2.0.js");
-// const {VideoIndexer, ConvertTime} = require("./video-indexer");
-// const AWS = require("aws-sdk");
-// const { request } = require("express");
-// const sendErrorEmail = require("./email").sendErrorEmail;
-// const TranscribeDoc = require("./transcribe-doc").TranscribeDoc;
+const { FilesReader, SkillsWriter, SkillsErrorEnum } = require('./skills-kit-library/skills-kit-2.0.js');
+const {VideoIndexer, ConvertTime} = require('./video-indexer.js');
+const { S3Client, GetObjectCommand, PutObjectCommand } = require("@aws-sdk/client-s3");
+const {TranscribeDoc} = require('./transcribe-doc.js');
 
-import { FilesReader, SkillsWriter, SkillsErrorEnum } from "./skills-kit-library/skills-kit-2.0.js";
-import {VideoIndexer, ConvertTime} from "./video-indexer.js";
-import AWS from "aws-sdk";
-import { request } from "express";
-// import sendErrorEmail from "./email".sendErrorEmail;
-import TranscribeDoc from "./transcribe-doc.js";
-
-
-var s3 = new AWS.S3();
-// const cloneDeep = require("lodash/cloneDeep"); // For deep cloning json objects
+const s3Client = new S3Client({ region: "us-east-1" }); // or your AWS region
 
 module.exports.handler = async (event) => {
+    console.log("Start function");
+    async function getS3Object(bucketName, objectKey) {
+        const getObjectParams = {
+            Bucket: bucketName,
+            Key: objectKey,
+        };
+        try {
+            const command = new GetObjectCommand(getObjectParams);
+            const data = await s3Client.send(command);
+            console.log("Data: \n"); //test
+            console.log(data) //test
+            // Note: For reading the object's data, especially if it's a stream, handle accordingly
+            return data;
+        } catch (error) {
+            console.error("Error in getObject:", error);
+            throw error;
+        }
+    }
+    
+    async function uploadToS3(bucketName, objectKey, body) {
+        const uploadParams = {
+            Bucket: bucketName,
+            Key: objectKey,
+            Body: body, // this can be a Buffer, Typed Array, Blob, String, ReadableStream
+        };
+        try {
+            const command = new PutObjectCommand(uploadParams);
+            const data = await s3Client.send(command);
+            return data; // Contains the response from S3
+        } catch (error) {
+            console.error("Error in upload:", error);
+            throw error;
+        }
+    }
+
+    // test helper function to help with VI error
+    async function streamToString(stream) {
+        const chunks = [];
+        return new Promise((resolve, reject) => {
+            stream.on('data', (chunk) => chunks.push(Buffer.from(chunk)));
+            stream.on('error', (err) => reject(err));
+            stream.on('end', () => resolve(Buffer.concat(chunks).toString('utf-8')));
+        });
+    }
     
     // VideoIndexer event
     if (event && event.queryStringParameters && event.queryStringParameters.state === "Processed") {
@@ -51,11 +71,13 @@ module.exports.handler = async (event) => {
 
             console.log('Request ID: ' + requestId);
 
-            let bucketData = await s3.getObject(params).promise();
+            let bucketData = await getS3Object(process.env.S3_BUCKET, requestId);
             console.log(bucketData);
 
             // "Body" is capital "B", not lowercase like "body".
-            let fileContext = JSON.parse(bucketData.Body.toString());
+            console.log('This working??')
+            const bodyContents = await streamToString(bucketData.Body);
+            let fileContext = JSON.parse(bodyContents);
             console.log(fileContext);
             console.log(fileContext.fileWriteToken);
 
@@ -143,8 +165,9 @@ module.exports.handler = async (event) => {
         return;
     }
 
+    console.log('Begin Parsed Body\n')
     let parsedBody = JSON.parse(event.body);
-    console.log(parsedBody);
+    console.log('Parsed Body: ', parsedBody);
 
     if (event && parsedBody.hasOwnProperty("type") && parsedBody.type === "skill_invocation") {
         try {
@@ -166,13 +189,14 @@ module.exports.handler = async (event) => {
             // S3 write fileContext JSON to save tokens for later use.
             let params = {
                 Bucket: process.env.S3_BUCKET,
-                Key: fileContext.requestId,
+                //Add the prefix here
+                Key: 'Expires/' + fileContext.requestId,
                 Body: JSON.stringify(fileContext)
             }
 
             console.log('Request ID: ' + fileContext.requestId);
 
-            let s3Response = await s3.upload(params).promise()
+            let s3Response = await uploadToS3(process.env.S3_BUCKET, fileContext.requestId, JSON.stringify(fileContext));
             console.log(s3Response);
     
             let skillsWriter = new SkillsWriter(fileContext);
