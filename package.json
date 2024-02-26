@@ -4,7 +4,10 @@
   "main": "index.js",
   "type": "module",
   "dependencies": {
-    "@aws-sdk/client-secrets-manager": "^3.441.0",
+    "@aws-sdk/client-iam": "^3.521.0",
+    "@aws-sdk/client-kms": "^3.521.0",
+    "@aws-sdk/client-s3": "^3.521.0",
+    "@aws-sdk/client-secrets-manager": "^3.521.0",
     "aws-sdk": "^2.1482.0",
     "box-node-sdk": "^3.4.1",
     "docx": "^7.8.2",
