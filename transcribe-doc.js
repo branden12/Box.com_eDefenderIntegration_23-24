@@ -19,7 +19,7 @@ import {
     GetSecretValueCommand,
 } from "@aws-sdk/client-secrets-manager";
 
-const secret_name = "box-config";
+const secret_name = "test-config";
 
 const client = new SecretsManagerClient({
     region: "us-east-1",

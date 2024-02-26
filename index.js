@@ -51,7 +51,7 @@ module.exports.handler = async (event) => {
 
             console.log('Request ID: ' + requestId);
 
-            let bucketData = await s3.getObject(params).promise();
+            let bucketData = await getS3Object(process.env.S3_BUCKET, requestId);
             console.log(bucketData);
 
             // "Body" is capital "B", not lowercase like "body".
@@ -164,6 +164,7 @@ module.exports.handler = async (event) => {
             fileContext.folderId = sourceFolderID;
     
             // S3 write fileContext JSON to save tokens for later use.
+            // S3 Bucket cleanup 
             let params = {
                 Bucket: process.env.S3_BUCKET,
                 //Add the prefix here
@@ -173,7 +174,7 @@ module.exports.handler = async (event) => {
 
             console.log('Request ID: ' + fileContext.requestId);
 
-            let s3Response = await s3.upload(params).promise()
+            let s3Response = await uploadToS3(process.env.S3_BUCKET, fileContext.requestId, JSON.stringify(fileContext));
             console.log(s3Response);
     
             let skillsWriter = new SkillsWriter(fileContext);
