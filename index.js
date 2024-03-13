@@ -22,7 +22,7 @@ module.exports.handler = async (event) => {
             console.log("[SUCCESS] Successfully retrieved data from S3")
             return data;
         } catch (error) {
-            console.error("[ERROR LINE 25 IN THE CODE] Error in getObject:", error);
+            console.error("[ERROR] Error in getObject:", error);
             throw error;
         }
     }
@@ -39,7 +39,7 @@ module.exports.handler = async (event) => {
             console.log("[SUCCESS] Successfully uploaded to S3")
             return data; // Contains the response from S3
         } catch (error) {
-            console.error("[ERROR LINE 42 IN THE CODE] Error in upload to S3:", error);
+            console.error("[ERROR] Error in upload to S3:", error);
             throw error;
         }
     }
@@ -223,7 +223,7 @@ module.exports.handler = async (event) => {
             console.log("[SUCCESS] Successfully handled Box Skill Invocation")
             return {statusCode: 200};
         } catch(e) {
-            console.error("[ERROR LINE 226 IN THE CODE] Error handling Box Skill Invocation",e);
+            console.error("[ERROR] Error handling Box Skill Invocation",e);
             // sendErrorEmail(e);
         }
     }

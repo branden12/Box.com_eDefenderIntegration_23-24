@@ -32,4 +32,5 @@ const MAX_TRIES = 10;
 function TranscribeDoc(data, fileName, folderId) {
     return new Promise(async (resolve, reject) => {
         const sdk = BoxSDK.getPreconfiguredInstance(secret);
-        const appUserClient = sdk.getAppAuthClient('enterprise');
+        const appUserClient = sdk.getAppAuthClient('enterprise')
+    })};

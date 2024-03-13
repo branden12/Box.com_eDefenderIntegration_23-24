@@ -54,7 +54,7 @@ VideoIndexer.prototype.upload = function (fileName, requestId, fileUrl, skillnam
             }
         });
 
-        request.on('error', (e) => {
+        request.on('[Error] Before Upload Video', (e) => {
             console.error(e);
             reject(e);
         });
@@ -95,7 +95,7 @@ VideoIndexer.prototype.getData = function (videoId) {
 
         });
 
-        request.on('error', (e) => {
+        request.on('[Error] Getting Data', (e) => {
             console.error(e);
             reject(e);
         });
@@ -146,7 +146,7 @@ VideoIndexer.prototype.getToken = function (allowEdit) {
             });
     
         })
-        request.on('error', (e) => {
+        request.on('[Error] Getting Tokens', (e) => {
             console.error(e);
             reject(e);
         });
