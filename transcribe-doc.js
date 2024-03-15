@@ -16,7 +16,7 @@ const MAX_TRIES = 10; // maximum number of tries for filename duplicates
 async function getSecret() {
     try {
         const data = await client.send(new GetSecretValueCommand({ SecretId: secret_name }));
-        return JSON.parse(data.SecretString); // Ensure this is correctly capitalized
+        return JSON.parse(data.SecretString); 
     } catch (error) {
         console.error("Error retrieving secret:", error);
         throw error; // Rethrow the error to handle it in the calling function
