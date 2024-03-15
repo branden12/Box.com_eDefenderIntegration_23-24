@@ -25,6 +25,7 @@ function VideoIndexer(apiGateway) {
  * https://api-portal.videoindexer.ai/docs/services/Operations/operations/Upload-Video?
  */
 VideoIndexer.prototype.upload = function (fileName, requestId, fileUrl, skillname) {
+    console.log("Starting... ");
 	console.log(skillname);
 	if(skillname.includes("English")){
 		this.language = "en-US";
@@ -55,6 +56,7 @@ VideoIndexer.prototype.upload = function (fileName, requestId, fileUrl, skillnam
         });
 
         request.on('error', (e) => {
+            console.log("error here 1");
             console.error(e);
             reject(e);
         });
@@ -96,6 +98,7 @@ VideoIndexer.prototype.getData = function (videoId) {
         });
 
         request.on('error', (e) => {
+            console.log("error here 2");
             console.error(e);
             reject(e);
         });
@@ -147,6 +150,7 @@ VideoIndexer.prototype.getToken = function (allowEdit) {
     
         })
         request.on('error', (e) => {
+            console.log("error here 3");
             console.error(e);
             reject(e);
         });
