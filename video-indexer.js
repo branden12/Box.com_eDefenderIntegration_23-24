@@ -45,7 +45,7 @@ VideoIndexer.prototype.upload = function (fileName, requestId, fileUrl, skillnam
 
     console.debug("before upload video:\n" + this.accessToken);
     return new Promise((resolve, reject) => {
-
+        console.log("Inside upload Promise");
         const request = https.request(options, (result) => {
             console.log('statusCode upload:', result.statusCode);
             console.log('headers upload:', result.headers);
