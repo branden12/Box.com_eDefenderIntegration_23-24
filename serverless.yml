@@ -52,21 +52,21 @@ resources:
 functions:
   hello:
     handler: index.handler
-    events:
-      - http:
-          path: /
-          method: any
-          cors:
-            origins:
-              -"https://www.box.com"
-              -"https://videoindexer.ai"
-            headers:
-              - Content-Type
-              - X-Amz-Date
-              - Authorization
-              - X-Api-Key
-              - X-Amz-Security-Token
-            allowCredentials: false
+    # events:
+    #   - http:
+    #       path: /
+    #       method: any
+    #       # cors:
+    #       #   origins:
+    #       #     -"https://www.box.com"
+    #       #     -"https://videoindexer.ai"
+    #       #   headers:
+    #       #     - Content-Type
+    #       #     - X-Amz-Date
+    #       #     - Authorization
+    #       #     - X-Api-Key
+    #       #     - X-Amz-Security-Token
+    #       #   allowCredentials: false
     
 
 plugins:
