@@ -52,9 +52,9 @@ resources:
 functions:
   hello:
     handler: index.handler
-    # events:
-    #   - http:
-    #       path: /
+    events:
+      - http:
+          path: /
     #       method: any
     #       # cors:
     #       #   origins:
