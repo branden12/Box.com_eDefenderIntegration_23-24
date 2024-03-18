@@ -19,9 +19,10 @@ module.exports.handler = async (event) => {
             console.log("Data: \n"); //test
             console.log(data) //test
             // Note: For reading the object's data, especially if it's a stream, handle accordingly
+            console.log("[SUCCESS] Successfully retrieved data from S3")
             return data;
         } catch (error) {
-            console.error("Error in getObject:", error);
+            console.error("[ERROR LINE 25 IN THE CODE] Error in getObject:", error);
             throw error;
         }
     }
@@ -35,9 +36,10 @@ module.exports.handler = async (event) => {
         try {
             const command = new PutObjectCommand(uploadParams);
             const data = await s3Client.send(command);
+            console.log("[SUCCESS] Successfully uploaded to S3")
             return data; // Contains the response from S3
         } catch (error) {
-            console.error("Error in upload:", error);
+            console.error("[ERROR LINE 42 IN THE CODE] Error in upload to S3:", error);
             throw error;
         }
     }
@@ -47,22 +49,30 @@ module.exports.handler = async (event) => {
         const chunks = [];
         return new Promise((resolve, reject) => {
             stream.on('data', (chunk) => chunks.push(Buffer.from(chunk)));
-            stream.on('error', (err) => reject(err));
-            stream.on('end', () => resolve(Buffer.concat(chunks).toString('utf-8')));
+            stream.on('error', (err) => {
+                console.log("[ERROR LINE 53 IN THE CODE] Error converting stream to string:", err)
+                reject(err)
+            });
+            stream.on('end', () => {
+                console.log("[SUCCESS] Successfully converted Stream to String")
+                resolve(Buffer.concat(chunks).toString('utf-8'))
+            });
         });
     }
     
     // VideoIndexer event
     if (event && event.queryStringParameters && event.queryStringParameters.state === "Processed") {
         
-        console.debug(`VideoIndexer finished processing event received: ${JSON.stringify(event)}`);
+        console.debug(`[EVENT] VideoIndexer finished processing event received: ${JSON.stringify(event)}`);
 
         try {
             const videoId = event.queryStringParameters.id;
             const requestId = event.queryStringParameters.requestId;
 
             let videoIndexer = new VideoIndexer(process.env.APIGATEWAY); // Initialized with callback endpoint
-            await videoIndexer.getToken(false);
+            await videoIndexer.getToken(true);
+
+            console.log("[SUCCESS] Successfully obtained tokens from VideoIndexer")
 
             let params = {
                 Bucket: process.env.S3_BUCKET,
@@ -78,6 +88,7 @@ module.exports.handler = async (event) => {
             console.log('This working??')
             const bodyContents = await streamToString(bucketData.Body);
             let fileContext = JSON.parse(bodyContents);
+            console.log("[SUCCESS] Successfully retrieved and parsed file context from S3 In VideoIndexer Event")
             console.log(fileContext);
             console.log(fileContext.fileWriteToken);
 
@@ -89,13 +100,14 @@ module.exports.handler = async (event) => {
 
             const indexerData = await videoIndexer.getData(videoId); // Can create skill cards after data extraction
                                                                     // This method also stores videoId for future use.
-
+            console.log("[SUCCESS] Successfully obtained date from VideoIndexer for videoID")
             const cards = [];
 
             let fileDuration = indexerData.summarizedInsights.duration.seconds;
             console.log("FileDuration: " + fileDuration);
 
             // Keywords
+            //Could Add more logs? need updated code 3/2/2024 - LP
             let keywords = [];
             indexerData.summarizedInsights.keywords.forEach(kw => {
                 if (kw.name.trim()) {
@@ -159,7 +171,7 @@ module.exports.handler = async (event) => {
             // This was where transcribe-doc call was originally placed
 
         } catch(e) {
-            console.error(e);
+            console.error("[ERROR] Error Processing VideoIndexer Event:",e);
             // sendErrorEmail(e);
         }
         return;
@@ -206,16 +218,18 @@ module.exports.handler = async (event) => {
             console.debug("sending video to VI");
             await videoIndexer.upload(fileContext.fileName, fileContext.requestId, fileContext.fileDownloadURL,JSON.parse(event.body).skill.name); // Will POST a success when it's done indexing.
             console.debug("video sent to VI");
+            console.log(fileContext.fileDownloadURL);
     
             console.debug("returning response to box");
+            console.log("[SUCCESS] Successfully handled Box Skill Invocation")
             return {statusCode: 200};
         } catch(e) {
-            console.error(e);
+            console.error("[ERROR LINE 226 IN THE CODE] Error handling Box Skill Invocation",e);
             // sendErrorEmail(e);
         }
     }
     else {
-        console.debug("Unknown request");
+        console.debug("[WARN] Unknown request");
         console.log(event);
 
         return {statusCode: 400, body: "Unknown Request"};
