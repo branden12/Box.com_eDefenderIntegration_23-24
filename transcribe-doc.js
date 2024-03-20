@@ -1,11 +1,11 @@
 'use strict';
-const fs = require("fs");
 const docx = require("docx");
 const { Readable } = require('stream');
 const { Buffer } = require("buffer");
 const BoxSDK = require("box-node-sdk");
 const path = require('path');
 
+// AWS Related imports and variables
 const { SecretsManagerClient, GetSecretValueCommand } = require("@aws-sdk/client-secrets-manager");
 const secret_name = "box-config";
 const region = 'us-east-1'
@@ -13,6 +13,7 @@ const client = new SecretsManagerClient({region});
 
 const MAX_TRIES = 10; // maximum number of tries for filename duplicates
 
+// Retrieve the secret
 async function getSecret() {
     try {
         const data = await client.send(new GetSecretValueCommand({ SecretId: secret_name }));
@@ -23,6 +24,7 @@ async function getSecret() {
     }
 }
 
+// Begin transcribing
 async function TranscribeDoc(data, fileName, folderId) {
     let secret;
     try {

@@ -43,6 +43,8 @@ VideoIndexer.prototype.upload = function (fileName, requestId, fileUrl, skillnam
         }
     };
 
+    console.log("Options: ");
+    console.log(options); 
     console.debug("before upload video:\n" + this.accessToken);
     return new Promise((resolve, reject) => {
         console.log("Inside upload Promise");
