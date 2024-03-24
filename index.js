@@ -50,7 +50,7 @@ module.exports.handler = async (event) => {
         return new Promise((resolve, reject) => {
             stream.on('data', (chunk) => chunks.push(Buffer.from(chunk)));
             stream.on('error', (err) => {
-                console.log("[ERROR LINE 53 IN THE CODE] Error converting stream to string:", err)
+                console.log("[ERROR] Error converting stream to string:", err)
                 reject(err)
             });
             stream.on('end', () => {
@@ -70,7 +70,7 @@ module.exports.handler = async (event) => {
             const requestId = event.queryStringParameters.requestId;
 
             let videoIndexer = new VideoIndexer(process.env.APIGATEWAY); // Initialized with callback endpoint
-            await videoIndexer.getToken(false);
+            await videoIndexer.getToken(true);
 
             console.log("[SUCCESS] Successfully obtained tokens from VideoIndexer")
 
@@ -218,6 +218,7 @@ module.exports.handler = async (event) => {
             console.debug("sending video to VI");
             await videoIndexer.upload(fileContext.fileName, fileContext.requestId, fileContext.fileDownloadURL,JSON.parse(event.body).skill.name); // Will POST a success when it's done indexing.
             console.debug("video sent to VI");
+            console.log(fileContext.fileDownloadURL);
     
             console.debug("returning response to box");
             console.log("[SUCCESS] Successfully handled Box Skill Invocation")

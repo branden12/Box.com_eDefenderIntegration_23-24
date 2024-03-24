@@ -48,13 +48,24 @@ VideoIndexer.prototype.upload = function (fileName, requestId, fileUrl, skillnam
         const request = https.request(options, (result) => {
             console.log('statusCode upload:', result.statusCode);
             console.log('headers upload:', result.headers);
+            console.log('result error:', result.error);
+            let data = []
+            result.on("data", (d) => {
+                data.push(d);
+            });
 
+            result.on("end", () => {
+                data = JSON.parse(Buffer.concat(data));
+                console.log(data);
+                resolve(data);
+            });
+            
             if (result.statusCode === 200) {
                 resolve("Success: Upload Video");
             }
         });
 
-        request.on('[Error] Before Upload Video', (e) => {
+        request.on('error', (e) => {
             console.error(e);
             reject(e);
         });
@@ -95,7 +106,7 @@ VideoIndexer.prototype.getData = function (videoId) {
 
         });
 
-        request.on('[Error] Getting Data', (e) => {
+        request.on('error', (e) => {
             console.error(e);
             reject(e);
         });
@@ -138,6 +149,7 @@ VideoIndexer.prototype.getToken = function (allowEdit) {
     
             result.on("end", () => {
                 data = Buffer.concat(data).toString();
+                console.log(data);
                 data = data.substring(1, data.length-1); // Wasted like 6 hours on this because token is wrapped in "double quote" characters
                 // Need to find out what's causing the encoding issue that inserts double quotes around the token
                 this.accessToken = data;
@@ -146,7 +158,7 @@ VideoIndexer.prototype.getToken = function (allowEdit) {
             });
     
         })
-        request.on('[Error] Getting Tokens', (e) => {
+        request.on('error', (e) => {
             console.error(e);
             reject(e);
         });

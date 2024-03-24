@@ -8,7 +8,7 @@ provider:
       VI_ACCOUNT_ID: 'ENTER_VIDEO_INDEXER_ACCOUNT_ID'
       VI_AUTH_KEY_1: 'ENTER_AUTH_KEY1'
       VI_AUTH_KEY_2: 'ENTER_AUTH_KEY2'
-  timeout: 30
+  timeout: 300
   
   
   iamRoleStatements:
@@ -53,17 +53,17 @@ functions:
       - http:
           path: /
           method: any
-          cors:
-            origins:
-              -"https://www.box.com"
-              -"https://videoindexer.ai"
-            headers:
-              - Content-Type
-              - X-Amz-Date
-              - Authorization
-              - X-Api-Key
-              - X-Amz-Security-Token
-            allowCredentials: false
+#           cors:
+#             origins:
+#               -"https://www.box.com"
+#               -"https://videoindexer.ai"
+#             headers:
+#               - Content-Type
+#               - X-Amz-Date
+#               - Authorization
+#               - X-Api-Key
+#               - X-Amz-Security-Token
+#             allowCredentials: false
     
 
 plugins:
