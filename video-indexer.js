@@ -49,22 +49,29 @@ VideoIndexer.prototype.upload = function (fileName, requestId, fileUrl, skillnam
     return new Promise((resolve, reject) => {
         console.log("Inside upload Promise");
         const request = https.request(options, (result) => {
+            let data = '';
             console.log('statusCode upload:', result.statusCode);
             console.log('headers upload:', result.headers);
-
-            if (result.statusCode === 200) {
-                resolve("Success: Upload Video");
-            }
+    
+            result.on('data', (chunk) => {
+                data += chunk;
+            });
+    
+            result.on('end', () => {
+                if (result.statusCode === 200) {
+                    resolve("Success: Upload Video");
+                } else {
+                    reject(new Error(`Failed: Status Code: ${result.statusCode}, Body: ${data}`));
+                }
+            });
         });
-
-        request.on('error', (e) => {
-            console.log("error here 1");
-            console.error(e);
-            reject(e);
+    
+        request.on('error', (error) => {
+            reject(new Error(`Request Failed: ${error.message}`));
         });
     
         request.end();
-    });
+    });  
         
 };
 
