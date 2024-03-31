@@ -8,7 +8,7 @@ const https = require("https");  // Low level API for HTTPS request/response
 
 function VideoIndexer(apiGateway) {
     this.apiGateway = apiGateway;
-    this.location = "trial"; // Trial VideoIndexer accounts has its own location.
+    this.location = "Trial"; // Trial VideoIndexer accounts has its own location.
     this.accountId = process.env.VI_ACCOUNT_ID; // Your VideoIndexer account ID
     this.authKey = process.env.VI_AUTH_KEY_1; // API key for VideoIndexer
     this.authKey2 = process.env.VI_AUTH_KEY_2; // API key for VideoIndexer
