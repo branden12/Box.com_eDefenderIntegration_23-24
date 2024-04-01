@@ -38,7 +38,22 @@ module.exports.handler = async (event) => {
             const data = await s3Client.send(command);
             return data; // Contains the response from S3
         } catch (error) {
-            console.error("Error in upload:", error);
+            console.error("Error sending to S3:", error);
+            throw error;
+        }
+    }
+
+    async function sendToS3(bucketName, objectKey, body) {
+        const uploadParams = {
+            Bucket: bucketName,
+            Key: objectKey,
+            Body: body,
+        };
+        try {
+            const command = new PutObjectCommand(uploadParams);
+            const data = await s3Client.send(command);
+        } catch (error) {
+            console.error("Error in sending to S3:", error);
             throw error;
         }
     }
@@ -207,10 +222,21 @@ module.exports.handler = async (event) => {
 
             // Testing New S3 Functionality
             console.debug("Saving Box video to S3 Bucket");
-            sdk.files.getReadStream()
+            sdk.files.getReadStream(fileID, null, async (error, stream) => {
+                if (error) {
+                    console.error("Error getting stream from Box: ", error);
+                    return;
+                }
+
+                try {
+                    await sendToS3(process.env.TEST_S3_BUCKET, fileContext.fileName, stream);
+                    console.log(`${fileContext.fileName} was uploaded to S3 successfully`);
+                } catch (uploadError) {
+                    console.error("Error uploading to S3: ", uploadError);
+                }
+            });
             // let s3VideoSave = await uploadToS3(process.env.TEST_S3_BUCKET, fileContext.fileName, fileContext.fileDownloadURL );
-            let s3VideoSave = await uploadToS3(process.env.TEST_S3_BUCKET, fileContext.fileName, fileContext.fileDownloadURL );
-            console.log(s3VideoSave)
+            //console.log(s3VideoSave)
             console.debug("Video Sucessfully Saved to S3");
 
             // console.debug("sending video to VI");
