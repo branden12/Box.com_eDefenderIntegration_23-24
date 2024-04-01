@@ -660,5 +660,6 @@ SkillsWriter.prototype.saveDataCards = function saveDataCards(
 module.exports = {
     FilesReader,
     SkillsWriter,
-    SkillsErrorEnum
+    SkillsErrorEnum,
+    sdk
 };

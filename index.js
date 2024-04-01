@@ -1,8 +1,9 @@
 'use strict';
-const { FilesReader, SkillsWriter, SkillsErrorEnum } = require('./skills-kit-library/skills-kit-2.0.js');
+const { FilesReader, SkillsWriter, SkillsErrorEnum, sdk } = require('./skills-kit-library/skills-kit-2.0.js');
 const {VideoIndexer, ConvertTime} = require('./video-indexer.js');
 const { S3Client, GetObjectCommand, PutObjectCommand } = require("@aws-sdk/client-s3");
 const {TranscribeDoc} = require('./transcribe-doc.js');
+const { Client } = require('box-node-sdk');
 
 const s3Client = new S3Client({ region: "us-east-1" }); 
 
@@ -167,7 +168,9 @@ module.exports.handler = async (event) => {
 
     console.log('Begin Parsed Body\n')
     let parsedBody = JSON.parse(event.body);
+    const fileID = parsedBody.source.id;
     console.log('Parsed Body: ', parsedBody);
+    console.log('FileID: ', fileID);
 
     if (event && parsedBody.hasOwnProperty("type") && parsedBody.type === "skill_invocation") {
         try {
@@ -204,8 +207,9 @@ module.exports.handler = async (event) => {
 
             // Testing New S3 Functionality
             console.debug("Saving Box video to S3 Bucket");
+            sdk.files.getReadStream()
             // let s3VideoSave = await uploadToS3(process.env.TEST_S3_BUCKET, fileContext.fileName, fileContext.fileDownloadURL );
-            let s3VideoSave = await uploadToS3(process.env.TEST_S3_BUCKET, /*fileContext.fileName*/'testfile', fileContext.fileDownloadURL );
+            let s3VideoSave = await uploadToS3(process.env.TEST_S3_BUCKET, fileContext.fileName, fileContext.fileDownloadURL );
             console.log(s3VideoSave)
             console.debug("Video Sucessfully Saved to S3");
 
