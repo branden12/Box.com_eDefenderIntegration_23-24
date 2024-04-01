@@ -1,4 +1,8 @@
 const https = require("https");  // Low level API for HTTPS request/response
+const { S3Client, GetObjectCommand, PutObjectCommand } = require("@aws-sdk/client-s3");
+
+
+const s3Client = new S3Client({ region: "us-east-1" });
 
 /**
  * @param {*} apiGateway - Used for callback when uploaded video indexing is finished.
@@ -16,6 +20,26 @@ function VideoIndexer(apiGateway) {
     this.accessToken = "";
 	this.language = "";
 }
+
+// Use this function to upload your video file to S3
+// Example: uploadToS3('my-s3-bucket', 'my-video.mp4', fileBuffer);
+async function uploadToS3(bucketName, objectKey, body) {
+    const uploadParams = {
+        Bucket: bucketName,
+        Key: objectKey,
+        Body: body,
+    };
+    try {
+        const command = new PutObjectCommand(uploadParams);
+        const data = await s3Client.send(command);
+        return data; // Contains the response from S3
+    } catch (error) {
+        console.error("Error in upload:", error);
+        throw error;
+    }
+}
+  
+
 
 /**
  * Uploaded video is public for testing purposes. Change this flag to "Private" to use
@@ -45,7 +69,8 @@ VideoIndexer.prototype.upload = function (fileName, requestId, fileUrl, skillnam
 
     console.log("Options: ");
     console.log(options); 
-    console.debug("before upload video:\n" + this.accessToken);
+    console.debug("before upload video:\n" + this.accessToken);     
+      
     return new Promise((resolve, reject) => {
         console.log("Inside upload Promise");
         const request = https.request(options, (result) => {

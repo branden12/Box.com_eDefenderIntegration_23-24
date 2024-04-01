@@ -201,12 +201,18 @@ module.exports.handler = async (event) => {
             let skillsWriter = new SkillsWriter(fileContext);
             
             await skillsWriter.saveProcessingCard();
-        
-            console.debug("sending video to VI");
-            await videoIndexer.upload(fileContext.fileName, fileContext.requestId, fileContext.fileDownloadURL,JSON.parse(event.body).skill.name); // Will POST a success when it's done indexing.
-            console.debug("video sent to VI");
+
+            // Testing New S3 Functionality
+            console.debug("Saving Box video to S3 Bucket");
+            let s3VideoSave = await uploadToS3(process.env.TEST_S3_BUCKET, fileContext.fileName, fileContext.fileDownloadURL );
+            console.log(s3VideoSave)
+            console.debug("Video Sucessfully Saved to S3");
+
+            // console.debug("sending video to VI");
+            // await videoIndexer.upload(fileContext.fileName, fileContext.requestId, fileContext.fileDownloadURL,JSON.parse(event.body).skill.name); // Will POST a success when it's done indexing.
+            // console.debug("video sent to VI");
     
-            console.debug("returning response to box");
+            // console.debug("returning response to box");
             return {statusCode: 200};
         } catch(e) {
             console.error(e);

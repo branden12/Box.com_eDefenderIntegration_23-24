@@ -8,6 +8,7 @@ provider:
       VI_ACCOUNT_ID: 'ENTER_VIDEO_INDEXER_ACCOUNT_ID'
       VI_AUTH_KEY_1: 'ENTER_AUTH_KEY1'
       VI_AUTH_KEY_2: 'ENTER_AUTH_KEY2'
+      TEST_S3_BUCKET: 'randomtestbucket-donovan-aws-box-sbpd' # TESTING NEW FUNCTIONALITY
   timeout: 28
   
   
