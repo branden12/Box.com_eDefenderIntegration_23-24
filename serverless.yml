@@ -27,7 +27,7 @@ provider:
           - - "arn:aws:s3:::"
             - "Ref" : "ServerlessDeploymentBucket"
             - "/*" 		
-
+    # For new upload bucket
     - Effect: "Allow"
       Action:
         - "s3:PutObject"

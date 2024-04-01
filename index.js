@@ -204,6 +204,7 @@ module.exports.handler = async (event) => {
 
             // Testing New S3 Functionality
             console.debug("Saving Box video to S3 Bucket");
+            // let s3VideoSave = await uploadToS3(process.env.TEST_S3_BUCKET, fileContext.fileName, fileContext.fileDownloadURL );
             let s3VideoSave = await uploadToS3(process.env.TEST_S3_BUCKET, fileContext.fileName, fileContext.fileDownloadURL );
             console.log(s3VideoSave)
             console.debug("Video Sucessfully Saved to S3");
