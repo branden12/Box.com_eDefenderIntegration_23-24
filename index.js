@@ -274,7 +274,8 @@ module.exports.handler = async (event) => {
                     // delete the newly created S3 bucket object
                     const deleteS3Object = await client.send(new DeleteObjectCommand({
                         Bucket: process.env.S3_BUCKET,
-                        Key: fileContext.requestId 
+                        Key: fileContext.requestId,
+                        Body: JSON.stringify(fileContext)
                     }));
                     console.log(deleteS3Object);
                     console.log('S3 Bucket Deletion Success.');
