@@ -21,7 +21,6 @@ const TranscribeDoc = require("./transcribe-doc").TranscribeDoc;
 const client = new S3Client({});
 
 
-
 module.exports.handler = async (event) => {
     
     // VideoIndexer event
@@ -43,9 +42,12 @@ module.exports.handler = async (event) => {
 
             if (VItoken.statusCode !== 200) { // Handling VI initializing Errors
                 console.error('Failed to Create a Video Indexer Object');
+                console.log('[ERROR] Program Termination');
                 await skillsWriter.saveErrorCard();
                 return {statusCode: 400, body: "Check Error Log."};
             }
+
+            console.log('[SUCCESS] Obtained tokens from VideoIndexer');
 
             // calling the bucket we built during the first call using the requestID
             let params = {
@@ -59,14 +61,14 @@ module.exports.handler = async (event) => {
 
             console.log(response);
 
-            // "Body" is capital "B", not lowercase like "body".
             let fileContext = JSON.parse(response);
-            console.log(fileContext);
-            console.log('FileWriteToken: ' + fileContext.fileWriteToken);
+            console.debug('FileWriteToken: ' + fileContext.fileWriteToken);
 
             // retrieve folderId from fileContext
             let folderId = fileContext.folderId;
-            console.log("folderId after VI finished: ", folderId);
+            console.debug("folderId after VI finished: ", folderId);
+
+            console.log("[SUCCESS] Program will begin to create Skill Cards.");
 
             let skillsWriter = new SkillsWriter(fileContext);
             const indexerData = await videoIndexer.getData(videoId); // Can create skill cards after data extraction
@@ -76,7 +78,7 @@ module.exports.handler = async (event) => {
             const cards = [];
 
             let fileDuration = indexerData.summarizedInsights.duration.seconds;
-            console.log("FileDuration: " + fileDuration);
+            console.debug("FileDuration: " + fileDuration);
 
             // Keywords
             let keywords = [];
@@ -143,6 +145,7 @@ module.exports.handler = async (event) => {
                 const deleteS3ObjectResponse = await client.send(deleteS3Object);
                 console.log(deleteS3ObjectResponse);
                 console.log('S3 Bucket Deletion Success.');
+                console.log('[SUCCESS] Program termination.');
             
             }
             catch(e) {
@@ -155,6 +158,7 @@ module.exports.handler = async (event) => {
                 const deleteS3ObjectResponse = await client.send(deleteS3Object);
                 console.log(deleteS3ObjectResponse);
                 console.log('S3 Bucket Deletion Success.');
+                console.log('[ERROR] Program Termination');
             }   
 
 
@@ -180,6 +184,7 @@ module.exports.handler = async (event) => {
             }));
             console.log(deleteS3Object);
             console.log('S3 Bucket Deletion Success.');
+            console.log('[ERROR] Program Termination');
 
             await skillsWriter.saveErrorCard(); // this displays the error message to the user
             
@@ -228,6 +233,7 @@ module.exports.handler = async (event) => {
 
                 if (VItoken.statusCode !== 200) { // Handling VI initializing Errors
                     console.error('Failed to Create a Video Indexer Object');
+                    console.log('[ERROR] Program Termination');
                     await skillsWriter.saveErrorCard();
                     return {statusCode: 400, body: "Check Error Log."};
                 }
@@ -245,7 +251,9 @@ module.exports.handler = async (event) => {
                 const s3Response = await client.send(new PutObjectCommand( params ));
                 console.log(s3Response);
                 console.debug('S3 Bucket Creation Success.');
-        
+
+
+                console.log(`fileURL: ${fileContext.fileDownloadURL}`);        
                 
 
                 // sending event info to VI
@@ -255,6 +263,7 @@ module.exports.handler = async (event) => {
                 if (uploadVideo.statusCode === 200) { // handling uploadVideo potential errors
                     console.debug("video sent to VI");
                     console.debug("returning response to box");
+                    console.log('[SUCCESS] Successfully Handled Box Skill Invocation. Waiting to initiate Phase 2.');
                     return {statusCode: 200, body: "Event Received and Sent to VI"};
 
                 } 
@@ -270,8 +279,9 @@ module.exports.handler = async (event) => {
                     console.log(deleteS3Object);
                     console.log('S3 Bucket Deletion Success.');
 
-
-
+                    console.error(uploadVideo.statusCode);
+                    console.error(uploadVideo.body);
+                    console.log('[ERROR] Program Termination');
                     return {statusCode: 400, body: "An Error Occured Uploading Video."};
                 }
 
@@ -284,6 +294,7 @@ module.exports.handler = async (event) => {
                 let skillsWriter = new SkillsWriter(fileContext);
     
                 await skillsWriter.saveErrorCard(); // this displays the error message to the user
+                console.log('[ERROR] Program Termination');
                 
                 return {statusCode: 400};
             }
@@ -298,6 +309,7 @@ module.exports.handler = async (event) => {
                 let skillsWriter = new SkillsWriter(fileContext);
 
                 await skillsWriter.saveErrorCard(); // this displays the error message to the user
+                console.log('[ERROR] Program Termination');
 
                 return {statusCode: 401, body: "Invalid Security Keys"};
             }
