@@ -1,4 +1,4 @@
-service: s3Bucket-testing
+service: box-skill-NAME
 provider:
   name: aws
   runtime: nodejs18.x

@@ -3,7 +3,10 @@
   "version": "2.0.0",
   "main": "index.js",
   "dependencies": {
+    "@aws-sdk/client-iam": "^3.556.0",
+    "@aws-sdk/client-kms": "^3.556.0",
     "@aws-sdk/client-s3": "^3.437.0",
+    "@aws-sdk/client-secrets-manager": "^3.556.0",
     "@aws-sdk/lib-storage": "^3.437.0",
     "box-node-sdk": "^3.3.0",
     "docx": "^7.8.2",
