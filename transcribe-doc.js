@@ -5,14 +5,35 @@ const { Readable } = require('stream');
 const { Buffer } = require("buffer");
 const BoxSDK = require("box-node-sdk");
 const path = require('path');
-const config = require('./config.json');
 
-// maximum number of tries for filename duplicates
-const MAX_TRIES = 10;
+const { SecretsManagerClient, GetSecretValueCommand } = require("@aws-sdk/client-secrets-manager");
+const secret_name = "box-config";
+const region = 'us-east-1'
+const client = new SecretsManagerClient({region});
 
-function TranscribeDoc(data, fileName, folderId) {
+const MAX_TRIES = 10; // maximum number of tries for filename duplicates
+
+async function getSecret() {
+    try {
+        const data = await client.send(new GetSecretValueCommand({ SecretId: secret_name }));
+        return JSON.parse(data.SecretString); // Ensure this is correctly capitalized
+    } catch (error) {
+        console.error("Error retrieving secret:", error);
+        throw error; // Rethrow the error to handle it in the calling function
+    }
+}
+
+async function TranscribeDoc(data, fileName, folderId) {
+    let secret;
+    try {
+        secret = await getSecret();
+    } catch (error) {
+        console.error("Failed to retrieve secret: ", error);
+        throw error;
+    }
+    
     return new Promise(async (resolve, reject) => {
-        const sdk = BoxSDK.getPreconfiguredInstance(config);
+        const sdk = BoxSDK.getPreconfiguredInstance(secret);
         const appUserClient = sdk.getAppAuthClient('enterprise');
         
         // filename without extension
