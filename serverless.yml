@@ -1,5 +1,4 @@
-# dont forget to change the 'service' to your name
-service: box-video-skill-
+service: s3Bucket-testing
 provider:
   name: aws
   runtime: nodejs18.x
@@ -11,7 +10,7 @@ provider:
       VI_AUTH_KEY_2: 'ENTER_AUTH_KEY2'
       BOX_PRIMARY_KEY: 'ENTER_PRIMARY_KEY'
       BOX_SECONDARY_KEY: 'ENTER_SECONDARY_KEY'
-  timeout: 28
+  timeout: 30
   
   
   iamRoleStatements:
@@ -29,8 +28,26 @@ provider:
           - ""
           - - "arn:aws:s3:::"
             - "Ref" : "ServerlessDeploymentBucket"
-            - "/*"
-  
+            - "/*"         
+  iamManagedPolicies:
+    # KMS Permissions
+    - arn:aws:iam::755824957602:policy/KMS-Permissions
+    # Secrets Manager Permissions
+    - arn:aws:iam::755824957602:policy/Secrets-Manager-Access-Policy
+    
+#S3 Bucket Cleanup 
+resources:
+  Resources:
+   ServerlessDeploymentBucket:
+      Type: "AWS::S3::Bucket"
+      Properties:
+        LifecycleConfiguration:
+          Rules:
+            - Id: "DeleteExpiredObjects"
+              ExpirationInDays: 30
+              Prefix: "Expires/"
+              Status: Enabled
+#API Gateway
 functions:
   hello:
     handler: index.handler
@@ -38,6 +55,18 @@ functions:
       - http:
           path: /
           method: any
+          cors:
+            origins:
+              -"https://www.box.com"
+              -"https://videoindexer.ai"
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+            allowCredentials: false
+    
 
 plugins:
   - serverless-plugin-common-excludes
