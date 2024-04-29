@@ -50,9 +50,7 @@ VideoIndexer.prototype.upload = function (fileName, requestId, fileUrl, skillnam
             console.log('headers upload:', result.headers);
 
             if (result.statusCode === 200) {
-                resolve({statusCode: result.statusCode, body: "Success: Upload Video"});
-            } else {
-                resolve({statusCode: result.statusCode, body: "Error."});
+                resolve("Success: Upload Video");
             }
         });
 
@@ -144,7 +142,7 @@ VideoIndexer.prototype.getToken = function (allowEdit) {
                 // Need to find out what's causing the encoding issue that inserts double quotes around the token
                 this.accessToken = data;
                 console.log(this.accessToken);
-                resolve({statusCode: result.statusCode, Body: "Success: Authorization Token"});
+                resolve("Success: Authorization Token");
             });
     
         })
