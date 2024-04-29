@@ -222,6 +222,7 @@ function pollRepresentationInfo(client, infoURL) {
  * fileReadToken, fileWriteToken, skillId, requestId for use in code.
  */
 FilesReader.prototype.getFileContext = function getFileContext() {
+    //this is the upload that is sent to aws 
     return {
         requestId: this.requestId,
         skillId: this.skillId,

@@ -8,7 +8,7 @@ provider:
       VI_ACCOUNT_ID: 'ENTER_VIDEO_INDEXER_ACCOUNT_ID'
       VI_AUTH_KEY_1: 'ENTER_AUTH_KEY1'
       VI_AUTH_KEY_2: 'ENTER_AUTH_KEY2'
-  timeout: 300
+  timeout: 30
   
   iamRoleStatements:
     - Effect: "Allow"
@@ -36,6 +36,7 @@ provider:
 #S3 Bucket Cleanup 
 resources:
   Resources:
+    # The ServerlessDeploymentBucket is a refrence to the bucket created by the policies
     ServerlessDeploymentBucket:
       Type: "AWS::S3::Bucket"
       Properties:
@@ -43,6 +44,7 @@ resources:
           Rules:
             - 
               ExpirationInDays: 30
+              # Sets the expiration in 30 days
               Prefix: "Expires/"
               Status: Enabled
 
@@ -55,18 +57,18 @@ functions:
     events:
       - http:
           path: /
-    #       method: any
-    #       # cors:
-    #       #   origins:
-    #       #     -"https://www.box.com"
-    #       #     -"https://videoindexer.ai"
-    #       #   headers:
-    #       #     - Content-Type
-    #       #     - X-Amz-Date
-    #       #     - Authorization
-    #       #     - X-Api-Key
-    #       #     - X-Amz-Security-Token
-    #       #   allowCredentials: false
+          method: any
+          cors:
+            origins:
+               -"https://www.box.com"
+               -"https://videoindexer.ai"
+            headers:
+               - Content-Type
+               - X-Amz-Date
+               - Authorization
+               - X-Api-Key
+               - X-Amz-Security-Token
+            allowCredentials: false
     
 
 plugins:
