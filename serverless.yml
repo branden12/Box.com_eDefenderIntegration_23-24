@@ -1,15 +1,16 @@
-# dont forget to change the 'service' to your name
-service: box-video-skill-
+service: box-skill-NAME
 provider:
   name: aws
-  runtime: nodejs14.x
+  runtime: nodejs18.x
   environment:
       APIGATEWAY: 'ENTER_GENERATED_API_GATEWAY'
       S3_BUCKET: 'ENTER_GENERATED_S3_BUCKET_NAME'
       VI_ACCOUNT_ID: 'ENTER_VIDEO_INDEXER_ACCOUNT_ID'
       VI_AUTH_KEY_1: 'ENTER_AUTH_KEY1'
       VI_AUTH_KEY_2: 'ENTER_AUTH_KEY2'
-  timeout: 28
+      BOX_PRIMARY_KEY: 'ENTER_PRIMARY_KEY'
+      BOX_SECONDARY_KEY: 'ENTER_SECONDARY_KEY'
+  timeout: 30
   
   
   iamRoleStatements:
@@ -21,13 +22,32 @@ provider:
       Action:
         - "s3:PutObject"
         - "s3:GetObject"
+        - "s3:DeleteObject"
       Resource:
         Fn::Join:
           - ""
           - - "arn:aws:s3:::"
             - "Ref" : "ServerlessDeploymentBucket"
-            - "/*"
-  
+            - "/*"         
+  iamManagedPolicies:
+    # KMS Permissions
+    - arn:aws:iam::755824957602:policy/KMS-Permissions
+    # Secrets Manager Permissions
+    - arn:aws:iam::755824957602:policy/Secrets-Manager-Access-Policy
+    
+#S3 Bucket Cleanup 
+resources:
+  Resources:
+   ServerlessDeploymentBucket:
+      Type: "AWS::S3::Bucket"
+      Properties:
+        LifecycleConfiguration:
+          Rules:
+            - Id: "DeleteExpiredObjects"
+              ExpirationInDays: 30
+              Prefix: "Expires/"
+              Status: Enabled
+#API Gateway
 functions:
   hello:
     handler: index.handler
@@ -35,6 +55,18 @@ functions:
       - http:
           path: /
           method: any
+          cors:
+            origins:
+              -"https://www.box.com"
+              -"https://videoindexer.ai"
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+            allowCredentials: false
+    
 
 plugins:
   - serverless-plugin-common-excludes
