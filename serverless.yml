@@ -1,4 +1,4 @@
-service: box-skill-NAME
+service: box-skill-NAMETOTEST
 provider:
   name: aws
   runtime: nodejs18.x
