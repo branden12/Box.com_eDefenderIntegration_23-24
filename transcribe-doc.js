@@ -168,6 +168,7 @@ async function TranscribeDoc(data, fileName, folderId) {
 
         // Calculate the total number of lines including 'END OF RECORDING'
         let totalLines = textRuns.length + extraLines;
+        //if (totalLines % 28 == 0) totalLines = 28;
 
 
         // Ensuring the last page has 28 lines by addinxg empty TextRuns if needed
