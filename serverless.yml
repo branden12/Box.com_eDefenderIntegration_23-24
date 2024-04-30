@@ -36,6 +36,7 @@ provider:
 #S3 Bucket Cleanup 
 resources:
   Resources:
+  #The ServerlessDeploymentBucket is a reference to the bucket created by the policies
    ServerlessDeploymentBucket:
       Type: "AWS::S3::Bucket"
       Properties:
@@ -43,6 +44,7 @@ resources:
           Rules:
             - Id: "DeleteExpiredObjects"
               ExpirationInDays: 30
+              # Sets the expiration in 30 days
               Prefix: "Expires/"
               Status: Enabled
 #API Gateway
@@ -53,17 +55,17 @@ functions:
       - http:
           path: /
           method: any
-#           cors:
-#             origins:
-#               -"https://www.box.com"
-#               -"https://videoindexer.ai"
-#             headers:
-#               - Content-Type
-#               - X-Amz-Date
-#               - Authorization
-#               - X-Api-Key
-#               - X-Amz-Security-Token
-#             allowCredentials: false
+          cors:
+            origins:
+              -"https://www.box.com"
+              -"https://videoindexer.ai"
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+            allowCredentials: false
     
 
 plugins:
