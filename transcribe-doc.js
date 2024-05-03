@@ -168,10 +168,13 @@ async function TranscribeDoc(data, fileName, folderId) {
 
         // Calculate the total number of lines including 'END OF RECORDING'
         let totalLines = textRuns.length + extraLines;
+        if (totalLines % 28 == 0) totalLines = 28;
+        else totalLines = totalLines % 28;
 
 
         // Ensuring the last page has 28 lines by addinxg empty TextRuns if needed
-        const linesToAdd = 28 - (totalLines % 28);
+        // const linesToAdd = 28 - (totalLines % 28);
+        const linesToAdd = 28 - totalLines;
         for (let i = 0; i < linesToAdd; i++) {
             textRuns.push(new docx.TextRun({ text: ' ', size: 24, break: 1 }));
         }
