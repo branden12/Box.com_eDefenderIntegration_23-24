@@ -4,25 +4,26 @@
   "main": "index.js",
   "dependencies": {
     "@aws-sdk/client-iam": "^3.556.0",
-    "@aws-sdk/client-kms": "^3.556.0",
-    "@aws-sdk/client-s3": "^3.437.0",
+    "@aws-sdk/client-kms": "^3.568.0",
+    "@aws-sdk/client-s3": "^3.568.0",
     "@aws-sdk/client-secrets-manager": "^3.556.0",
-    "@aws-sdk/lib-storage": "^3.437.0",
-    "box-node-sdk": "^3.3.0",
-    "docx": "^7.8.2",
-    "eslint": "^8.51.0",
+    "@aws-sdk/lib-storage": "^3.568.0",
+    "box-node-sdk": "^3.5.1",
+    "docx": "^8.5.0",
+    "eslint": "^9.1.1",
     "express": "^4.17.1",
     "jest": "^29.7.0",
-    "jimp": "^0.22.10",
+    "jimp": "^0.22.12",
     "lodash": "^4.17.15",
     "nodemailer": "^6.4.2",
     "path": "^0.12.7",
-    "url-template": "^2.0.8"
+    "phin": "^3.7.1",
+    "url-template": "^3.1.1"
   },
   "devDependencies": {
     "serverless": "^3.28.0",
     "serverless-plugin-common-excludes": "^4.0.0",
-    "serverless-plugin-include-dependencies": "^5.0.0"
+    "serverless-plugin-include-dependencies": "^6.0.0"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
